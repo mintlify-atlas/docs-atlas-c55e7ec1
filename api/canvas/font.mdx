@@ -1,0 +1,403 @@
+---
+title: "Font"
+description: "Canvas font management class for text rendering"
+---
+
+<Note>
+  The `@magicyan/canvas` package requires `@napi-rs/canvas` as a peer dependency. Install it with:
+  ```bash
+  npm install @napi-rs/canvas
+  ```
+</Note>
+
+## Overview
+
+The `CanvasContextFont` class provides a convenient way to manage font properties for canvas text rendering. It automatically updates the canvas context when font properties change and supports method chaining for fluent configuration.
+
+## Class: CanvasContextFont
+
+### Constructor
+
+```typescript
+class CanvasContextFont {
+  constructor(
+    context: SKRSContext2D,
+    props?: Partial<CanvasContextFontProps>
+  )
+}
+```
+
+<ParamField path="context" type="SKRSContext2D" required>
+  The canvas 2D rendering context from `@napi-rs/canvas`
+</ParamField>
+
+<ParamField path="props" type="Partial<CanvasContextFontProps>">
+  Optional initial font properties
+</ParamField>
+
+### CanvasContextFontProps
+
+Interface for font configuration properties:
+
+```typescript
+interface CanvasContextFontProps {
+  family?: string;
+  style?: string | ContextFontStyle;
+  weight?: string | ContextFontWeight;
+  size?: number;
+  align?: CanvasTextAlign;
+  baseline?: CanvasTextBaseline;
+  kerning?: CanvasFontKerning;
+}
+```
+
+<ParamField path="family" type="string" default="'Arial'">
+  The font family name (e.g., 'Arial', 'Helvetica', 'Comic Sans MS')
+</ParamField>
+
+<ParamField path="style" type="string | ContextFontStyle">
+  Font style: 'italic', 'underline', 'strikethrough', or combinations
+</ParamField>
+
+<ParamField path="weight" type="string | ContextFontWeight">
+  Font weight: 'thin', 'light', 'regular', 'medium', 'bold', 'black', or numeric values (100-900)
+</ParamField>
+
+<ParamField path="size" type="number" default="12">
+  Font size in pixels
+</ParamField>
+
+<ParamField path="align" type="CanvasTextAlign" default="'start'">
+  Text alignment: 'start', 'end', 'left', 'right', 'center'
+</ParamField>
+
+<ParamField path="baseline" type="CanvasTextBaseline" default="'top'">
+  Text baseline: 'top', 'hanging', 'middle', 'alphabetic', 'ideographic', 'bottom'
+</ParamField>
+
+<ParamField path="kerning" type="CanvasFontKerning" default="'auto'">
+  Font kerning: 'auto', 'normal', 'none'
+</ParamField>
+
+### Type Definitions
+
+#### ContextFontWeight
+
+```typescript
+type ContextFontWeight = 
+  | "thin" | "extralight" | "light" | "regular" 
+  | "medium" | "semibold" | "bold" | "extrabold" | "black"
+  | "100" | "200" | "300" | "400" | "500" | "600" | "700" | "800" | "900";
+```
+
+#### ContextFontStyle
+
+```typescript
+type ContextFontStyle = 
+  | "italic" 
+  | "italic underline" 
+  | "italic strikethrough"
+  | "italic strikethrough underline"
+  | "strikethrough" 
+  | "strikethrough underline"
+  | "underline"
+```
+
+## Methods
+
+### set
+
+Update multiple font properties at once.
+
+```typescript
+set(props: CanvasContextFontProps): this
+```
+
+<ParamField path="props" type="CanvasContextFontProps" required>
+  Object containing font properties to update
+</ParamField>
+
+**Returns:** The font instance for method chaining
+
+---
+
+### setFamily
+
+Set the font family.
+
+```typescript
+setFamily(family: string): this
+```
+
+<ParamField path="family" type="string" required>
+  The font family name
+</ParamField>
+
+**Returns:** The font instance for method chaining
+
+---
+
+### setStyle
+
+Set the font style.
+
+```typescript
+setStyle(style: string | ContextFontStyle): this
+```
+
+<ParamField path="style" type="string | ContextFontStyle" required>
+  The font style
+</ParamField>
+
+**Returns:** The font instance for method chaining
+
+---
+
+### setWeight
+
+Set the font weight.
+
+```typescript
+setWeight(weight: string | ContextFontWeight): this
+```
+
+<ParamField path="weight" type="string | ContextFontWeight" required>
+  The font weight
+</ParamField>
+
+**Returns:** The font instance for method chaining
+
+---
+
+### setSize
+
+Set the font size.
+
+```typescript
+setSize(size: number): this
+```
+
+<ParamField path="size" type="number" required>
+  The font size in pixels
+</ParamField>
+
+**Returns:** The font instance for method chaining
+
+---
+
+### setAlign
+
+Set the text alignment.
+
+```typescript
+setAlign(align: CanvasTextAlign): this
+```
+
+<ParamField path="align" type="CanvasTextAlign" required>
+  The text alignment
+</ParamField>
+
+**Returns:** The font instance for method chaining
+
+---
+
+### setBaseline
+
+Set the text baseline.
+
+```typescript
+setBaseline(baseline: CanvasTextBaseline): this
+```
+
+<ParamField path="baseline" type="CanvasTextBaseline" required>
+  The text baseline
+</ParamField>
+
+**Returns:** The font instance for method chaining
+
+---
+
+### setKerning
+
+Set the font kerning.
+
+```typescript
+setKerning(kerning: CanvasFontKerning): this
+```
+
+<ParamField path="kerning" type="CanvasFontKerning" required>
+  The font kerning setting
+</ParamField>
+
+**Returns:** The font instance for method chaining
+
+## Properties (Getters)
+
+- `family`: Get the current font family
+- `style`: Get the current font style
+- `weight`: Get the current font weight
+- `size`: Get the current font size
+- `align`: Get the current text alignment
+- `baseline`: Get the current text baseline
+- `kerning`: Get the current font kerning
+
+## Examples
+
+### Basic Usage
+
+```typescript
+import { createCanvas } from '@napi-rs/canvas';
+import { CanvasContextFont } from '@magicyan/canvas';
+
+const canvas = createCanvas(800, 600);
+const ctx = canvas.getContext('2d');
+
+// Create a font manager
+const font = new CanvasContextFont(ctx, {
+  family: 'Arial',
+  size: 24,
+  weight: 'bold',
+  align: 'center'
+});
+
+ctx.fillStyle = 'white';
+ctx.fillText('Hello World!', 400, 300);
+```
+
+### Method Chaining
+
+```typescript
+import { createCanvas } from '@napi-rs/canvas';
+import { CanvasContextFont } from '@magicyan/canvas';
+
+const canvas = createCanvas(800, 600);
+const ctx = canvas.getContext('2d');
+
+const font = new CanvasContextFont(ctx)
+  .setFamily('Helvetica')
+  .setSize(32)
+  .setWeight('bold')
+  .setAlign('center')
+  .setBaseline('middle');
+
+ctx.fillStyle = 'black';
+ctx.fillText('Centered Text', 400, 300);
+```
+
+### Dynamic Font Updates
+
+```typescript
+import { createCanvas } from '@napi-rs/canvas';
+import { CanvasContextFont } from '@magicyan/canvas';
+
+const canvas = createCanvas(800, 600);
+const ctx = canvas.getContext('2d');
+
+const font = new CanvasContextFont(ctx);
+
+// Draw with different font sizes
+for (let i = 0; i < 5; i++) {
+  font.setSize(12 + (i * 4));
+  ctx.fillText(`Text size ${font.size}`, 50, 50 + (i * 30));
+}
+```
+
+### Using Font Styles
+
+```typescript
+import { createCanvas } from '@napi-rs/canvas';
+import { CanvasContextFont } from '@magicyan/canvas';
+
+const canvas = createCanvas(800, 600);
+const ctx = canvas.getContext('2d');
+
+const font = new CanvasContextFont(ctx, {
+  family: 'Georgia',
+  size: 20,
+  style: 'italic underline'
+});
+
+ctx.fillStyle = 'navy';
+ctx.fillText('Italic and Underlined', 100, 100);
+```
+
+### Text Alignment Examples
+
+```typescript
+import { createCanvas } from '@napi-rs/canvas';
+import { CanvasContextFont } from '@magicyan/canvas';
+
+const canvas = createCanvas(800, 600);
+const ctx = canvas.getContext('2d');
+
+const font = new CanvasContextFont(ctx, {
+  size: 18
+});
+
+const centerX = 400;
+
+// Left aligned
+font.setAlign('left');
+ctx.fillText('Left aligned', centerX, 100);
+
+// Center aligned
+font.setAlign('center');
+ctx.fillText('Center aligned', centerX, 150);
+
+// Right aligned
+font.setAlign('right');
+ctx.fillText('Right aligned', centerX, 200);
+```
+
+### Using Custom Font Weights
+
+```typescript
+import { createCanvas } from '@napi-rs/canvas';
+import { CanvasContextFont } from '@magicyan/canvas';
+
+const canvas = createCanvas(800, 600);
+const ctx = canvas.getContext('2d');
+
+const font = new CanvasContextFont(ctx, {
+  family: 'Arial',
+  size: 24
+});
+
+// Named weights
+font.setWeight('light');
+ctx.fillText('Light', 50, 50);
+
+font.setWeight('regular');
+ctx.fillText('Regular', 50, 100);
+
+font.setWeight('bold');
+ctx.fillText('Bold', 50, 150);
+
+// Numeric weights
+font.setWeight('300');
+ctx.fillText('Weight 300', 50, 200);
+
+font.setWeight('700');
+ctx.fillText('Weight 700', 50, 250);
+```
+
+### Reading Font Properties
+
+```typescript
+import { createCanvas } from '@napi-rs/canvas';
+import { CanvasContextFont } from '@magicyan/canvas';
+
+const canvas = createCanvas(800, 600);
+const ctx = canvas.getContext('2d');
+
+const font = new CanvasContextFont(ctx, {
+  family: 'Verdana',
+  size: 16,
+  weight: 'bold'
+});
+
+console.log(`Font: ${font.family}`);
+console.log(`Size: ${font.size}px`);
+console.log(`Weight: ${font.weight}`);
+console.log(`Align: ${font.align}`);
+```

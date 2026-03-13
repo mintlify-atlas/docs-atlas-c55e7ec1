@@ -1,0 +1,123 @@
+---
+title: "Introduction"
+description: "A comprehensive collection of TypeScript utilities for building powerful Discord bots"
+---
+
+## What is Magicyan?
+
+Magicyan is a modern, type-safe SDK library consisting of TypeScript utility packages designed specifically for Discord.js bot development. It provides a collection of lightweight, modular utilities that simplify common tasks and enhance your bot development experience.
+
+<Note>
+  All Magicyan packages are built with TypeScript and provide full type safety, ensuring a better developer experience with autocompletion and type checking.
+</Note>
+
+## Key Benefits
+
+<CardGroup cols={2}>
+  <Card title="Type Safety" icon="shield-check">
+    Full TypeScript support with comprehensive type definitions prevents runtime errors and provides excellent IDE support
+  </Card>
+  <Card title="Modular Design" icon="cubes">
+    Install only the packages you need - no bloat, no unnecessary dependencies
+  </Card>
+  <Card title="Discord.js Integration" icon="puzzle-piece">
+    Built specifically for Discord.js v14+ with seamless integration and helper utilities
+  </Card>
+  <Card title="Developer Experience" icon="sparkles">
+    Intuitive APIs with clear documentation, real-world examples, and consistent patterns across all packages
+  </Card>
+</CardGroup>
+
+## Package Ecosystem
+
+Magicyan consists of several specialized packages, each solving specific problems in bot development:
+
+### Core Utilities
+
+<Card title="@magicyan/core" icon="gear" href="/packages/core">
+  Essential utilities for common programming tasks including:
+  - **String manipulation**: `capitalize`, `limitText`, `replaceText`, `brBuilder`
+  - **Validation**: `isDefined`, `equalsIgnoreCase`, `includesIgnoreCase`
+  - **Date handling**: Date formatting and manipulation utilities
+  - **Async utilities**: `sleep` with time unit helpers (`sleep.seconds()`, `sleep.minutes()`)
+  - **Type-safe utilities**: Nullable types and function helpers
+</Card>
+
+### Discord.js Helpers
+
+<CardGroup cols={2}>
+  <Card title="@magicyan/discord" icon="discord" href="/packages/discord">
+    **Discord.js utilities** including:
+    - Command builders and helpers
+    - Channel, member, and role utilities
+    - Enhanced embed builders (`EmbedPlusBuilder`)
+    - Component builders (buttons, modals, rows)
+    - Message utilities and webhook helpers
+    - Regex patterns for Discord entities
+  </Card>
+  
+  <Card title="@magicyan/discord-events" icon="bolt" href="/packages/discord-events">
+    **Extended event system** with custom Discord events beyond the standard Discord.js events
+  </Card>
+  
+  <Card title="@magicyan/discord-ui" icon="window" href="/packages/discord-ui">
+    **Type-safe UI components** for building complex Discord interfaces
+  </Card>
+</CardGroup>
+
+### Specialized Packages
+
+<CardGroup cols={2}>
+  <Card title="@magicyan/canvas" icon="image" href="/packages/canvas">
+    **Canvas manipulation** utilities for creating images with filters, gradients, and text rendering
+  </Card>
+  
+  <Card title="@magicyan/minecraft" icon="cube" href="/packages/minecraft">
+    **Minecraft API integration** with type-safe wrappers for Minecraft server and player data
+  </Card>
+</CardGroup>
+
+## Who is Magicyan For?
+
+Magicyan is perfect for:
+
+- **Discord Bot Developers** building bots with Discord.js who want to reduce boilerplate and improve productivity
+- **TypeScript Developers** who value type safety and want comprehensive type definitions for their Discord projects
+- **Teams** who need consistent, maintainable utilities across multiple bot projects
+- **Beginners** learning Discord bot development who want intuitive, well-documented helper functions
+- **Advanced Developers** who want low-level utilities that don't get in the way of custom implementations
+
+## Design Philosophy
+
+Magicyan follows these core principles:
+
+1. **Type Safety First**: Every function and utility is fully typed with TypeScript
+2. **Zero Magic**: Clear, explicit APIs that do exactly what they say
+3. **Composable**: Small, focused utilities that work well together
+4. **Tree-Shakeable**: Modern ES modules allow bundlers to remove unused code
+5. **Framework Agnostic**: Core utilities work anywhere, Discord packages integrate seamlessly with Discord.js
+
+## Requirements
+
+<Info>
+  **Node.js**: v18 or higher  
+  **Discord.js**: v14.25.1 or higher (for Discord-related packages)  
+  **Package Manager**: npm, yarn, or pnpm
+</Info>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Installation" icon="download" href="/installation">
+    Install Magicyan packages and set up your project
+  </Card>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Build your first Discord bot with Magicyan utilities
+  </Card>
+  <Card title="Packages Overview" icon="boxes-stacked" href="/packages/overview">
+    Explore all available packages in detail
+  </Card>
+  <Card title="API Reference" icon="code" href="/api/core/check">
+    Browse the complete API documentation
+  </Card>
+</CardGroup>

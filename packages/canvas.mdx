@@ -1,0 +1,403 @@
+---
+title: '@magicyan/canvas'
+description: Canvas utilities for image manipulation and custom graphics
+icon: paintbrush
+---
+
+The `@magicyan/canvas` package provides utilities for working with the HTML5 Canvas API in Node.js, including gradient helpers, image filters, and custom font management. Perfect for creating welcome cards, user profiles, and custom graphics for Discord bots.
+
+## Installation
+
+<CodeGroup>
+```bash npm
+npm install @magicyan/canvas @napi-rs/canvas
+```
+
+```bash pnpm
+pnpm add @magicyan/canvas @napi-rs/canvas
+```
+
+```bash yarn
+yarn add @magicyan/canvas @napi-rs/canvas
+```
+</CodeGroup>
+
+<Note>
+  This package requires `@napi-rs/canvas` as a peer dependency for native canvas rendering in Node.js.
+</Note>
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card title="Gradients" icon="paint-roller">
+    Create linear and radial gradients with easy color stop configuration.
+  </Card>
+  
+  <Card title="Image Filters" icon="wand-magic-sparkles">
+    Apply filters like blur, brightness, contrast, and grayscale to images.
+  </Card>
+  
+  <Card title="Custom Fonts" icon="font">
+    Load and manage custom fonts with the Font class.
+  </Card>
+  
+  <Card title="Type-Safe Colors" icon="palette">
+    Full TypeScript support for CSS colors and color formats.
+  </Card>
+</CardGroup>
+
+## Core Exports
+
+### Classes
+
+- `Font` - Load and register custom fonts
+
+### Functions
+
+**Gradient:**
+- `setGradientStops()` - Configure gradient color stops
+
+**Filters:**
+- `applyFilter()` - Apply image filters to canvas context
+- `blur()` - Apply blur effect
+- `brightness()` - Adjust brightness
+- `contrast()` - Adjust contrast
+- `grayscale()` - Convert to grayscale
+- `sepia()` - Apply sepia tone
+
+### Types
+
+- `CssColors` - Type-safe CSS color names
+- `FontWeight` - Font weight types
+- `GradientStop` - Gradient color stop configuration
+- `ContextGradient` - Canvas gradient types
+
+## Usage Examples
+
+### Basic Canvas Setup
+
+```typescript
+import { createCanvas, loadImage } from '@napi-rs/canvas';
+import { setGradientStops } from '@magicyan/canvas';
+
+const canvas = createCanvas(800, 400);
+const ctx = canvas.getContext('2d');
+
+// Now you can use canvas utilities
+```
+
+### Working with Gradients
+
+```typescript
+import { createCanvas } from '@napi-rs/canvas';
+import { setGradientStops } from '@magicyan/canvas';
+
+const canvas = createCanvas(800, 400);
+const ctx = canvas.getContext('2d');
+
+// Create linear gradient
+const gradient = ctx.createLinearGradient(0, 0, 800, 0);
+
+// Set color stops easily
+setGradientStops(gradient, {
+  0: '#FF0000',    // Red at start
+  0.5: '#00FF00',  // Green at middle
+  1: '#0000FF'     // Blue at end
+});
+
+// Use the gradient
+ctx.fillStyle = gradient;
+ctx.fillRect(0, 0, 800, 400);
+```
+
+### Radial Gradients
+
+```typescript
+const canvas = createCanvas(500, 500);
+const ctx = canvas.getContext('2d');
+
+// Create radial gradient (center to edge)
+const gradient = ctx.createRadialGradient(250, 250, 0, 250, 250, 250);
+
+setGradientStops(gradient, {
+  0: 'white',
+  0.5: 'lightblue',
+  1: 'darkblue'
+});
+
+ctx.fillStyle = gradient;
+ctx.fillRect(0, 0, 500, 500);
+```
+
+### Loading Custom Fonts
+
+```typescript
+import { Font } from '@magicyan/canvas';
+import { createCanvas } from '@napi-rs/canvas';
+import { readFileSync } from 'fs';
+
+// Load font from file
+const fontData = readFileSync('./fonts/CustomFont.ttf');
+const customFont = new Font({
+  family: 'CustomFont',
+  data: fontData,
+  weight: 'normal',
+  style: 'normal'
+});
+
+// Register the font
+customFont.register();
+
+// Use in canvas
+const canvas = createCanvas(800, 400);
+const ctx = canvas.getContext('2d');
+ctx.font = '48px CustomFont';
+ctx.fillText('Hello with custom font!', 50, 100);
+```
+
+### Creating Welcome Cards
+
+```typescript
+import { createCanvas, loadImage } from '@napi-rs/canvas';
+import { setGradientStops } from '@magicyan/canvas';
+
+async function createWelcomeCard(username: string, avatarUrl: string) {
+  const canvas = createCanvas(800, 300);
+  const ctx = canvas.getContext('2d');
+  
+  // Background gradient
+  const gradient = ctx.createLinearGradient(0, 0, 800, 300);
+  setGradientStops(gradient, {
+    0: '#667eea',
+    1: '#764ba2'
+  });
+  
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, 800, 300);
+  
+  // Load and draw avatar
+  const avatar = await loadImage(avatarUrl);
+  
+  // Circular avatar
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(150, 150, 80, 0, Math.PI * 2);
+  ctx.closePath();
+  ctx.clip();
+  ctx.drawImage(avatar, 70, 70, 160, 160);
+  ctx.restore();
+  
+  // Draw avatar border
+  ctx.strokeStyle = 'white';
+  ctx.lineWidth = 5;
+  ctx.beginPath();
+  ctx.arc(150, 150, 80, 0, Math.PI * 2);
+  ctx.stroke();
+  
+  // Welcome text
+  ctx.fillStyle = 'white';
+  ctx.font = 'bold 48px Arial';
+  ctx.fillText('Welcome!', 280, 120);
+  
+  // Username
+  ctx.font = '36px Arial';
+  ctx.fillText(username, 280, 180);
+  
+  return canvas.toBuffer('image/png');
+}
+
+// Use in Discord bot
+const welcomeCard = await createWelcomeCard(member.user.username, member.user.displayAvatarURL());
+await channel.send({
+  files: [{ attachment: welcomeCard, name: 'welcome.png' }]
+});
+```
+
+### User Profile Card
+
+```typescript
+import { createCanvas } from '@napi-rs/canvas';
+import { setGradientStops } from '@magicyan/canvas';
+
+async function createProfileCard(user: {
+  name: string;
+  level: number;
+  xp: number;
+  maxXp: number;
+  avatarUrl: string;
+}) {
+  const canvas = createCanvas(700, 250);
+  const ctx = canvas.getContext('2d');
+  
+  // Background
+  ctx.fillStyle = '#23272a';
+  ctx.fillRect(0, 0, 700, 250);
+  
+  // XP Bar background
+  ctx.fillStyle = '#18191c';
+  ctx.fillRect(250, 180, 400, 30);
+  
+  // XP Bar fill
+  const xpPercent = user.xp / user.maxXp;
+  const gradient = ctx.createLinearGradient(250, 180, 650, 180);
+  setGradientStops(gradient, {
+    0: '#7289da',
+    1: '#5865f2'
+  });
+  
+  ctx.fillStyle = gradient;
+  ctx.fillRect(250, 180, 400 * xpPercent, 30);
+  
+  // Avatar
+  const avatar = await loadImage(user.avatarUrl);
+  ctx.drawImage(avatar, 50, 50, 150, 150);
+  
+  // Text
+  ctx.fillStyle = 'white';
+  ctx.font = 'bold 32px Arial';
+  ctx.fillText(user.name, 250, 80);
+  
+  ctx.font = '24px Arial';
+  ctx.fillText(`Level ${user.level}`, 250, 130);
+  
+  ctx.font = '18px Arial';
+  ctx.fillText(`${user.xp} / ${user.maxXp} XP`, 250, 160);
+  
+  return canvas.toBuffer('image/png');
+}
+```
+
+### Applying Image Filters
+
+```typescript
+import { createCanvas, loadImage } from '@napi-rs/canvas';
+
+async function applyImageFilter(imageUrl: string, filterType: string) {
+  const image = await loadImage(imageUrl);
+  const canvas = createCanvas(image.width, image.height);
+  const ctx = canvas.getContext('2d');
+  
+  // Draw original image
+  ctx.drawImage(image, 0, 0);
+  
+  // Get image data
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const data = imageData.data;
+  
+  // Apply filter based on type
+  switch (filterType) {
+    case 'grayscale':
+      for (let i = 0; i < data.length; i += 4) {
+        const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+        data[i] = avg;     // Red
+        data[i + 1] = avg; // Green
+        data[i + 2] = avg; // Blue
+      }
+      break;
+      
+    case 'sepia':
+      for (let i = 0; i < data.length; i += 4) {
+        const r = data[i], g = data[i + 1], b = data[i + 2];
+        data[i] = Math.min(255, (r * 0.393) + (g * 0.769) + (b * 0.189));
+        data[i + 1] = Math.min(255, (r * 0.349) + (g * 0.686) + (b * 0.168));
+        data[i + 2] = Math.min(255, (r * 0.272) + (g * 0.534) + (b * 0.131));
+      }
+      break;
+      
+    case 'invert':
+      for (let i = 0; i < data.length; i += 4) {
+        data[i] = 255 - data[i];       // Red
+        data[i + 1] = 255 - data[i + 1]; // Green
+        data[i + 2] = 255 - data[i + 2]; // Blue
+      }
+      break;
+  }
+  
+  // Put modified image data back
+  ctx.putImageData(imageData, 0, 0);
+  
+  return canvas.toBuffer('image/png');
+}
+```
+
+### Text with Gradient Fill
+
+```typescript
+import { createCanvas } from '@napi-rs/canvas';
+import { setGradientStops } from '@magicyan/canvas';
+
+const canvas = createCanvas(800, 200);
+const ctx = canvas.getContext('2d');
+
+// Background
+ctx.fillStyle = '#2c2f33';
+ctx.fillRect(0, 0, 800, 200);
+
+// Create gradient for text
+const gradient = ctx.createLinearGradient(0, 0, 800, 0);
+setGradientStops(gradient, {
+  0: '#ff0080',
+  0.5: '#ff8c00',
+  1: '#40e0d0'
+});
+
+// Draw text with gradient
+ctx.font = 'bold 72px Arial';
+ctx.fillStyle = gradient;
+ctx.textAlign = 'center';
+ctx.fillText('Gradient Text!', 400, 120);
+```
+
+## TypeScript Support
+
+Full type definitions for colors and gradients:
+
+```typescript
+import type { 
+  CssColors, 
+  FontWeight, 
+  GradientStop,
+  ContextGradient 
+} from '@magicyan/canvas';
+
+// Type-safe CSS colors
+const color: CssColors = 'rebeccapurple';
+
+// Type-safe gradient stops
+const stops: Record<number, CssColors> = {
+  0: 'red',
+  0.5: 'yellow',
+  1: 'blue'
+};
+
+// Font weights
+const weight: FontWeight = 'bold';
+```
+
+## Best Practices
+
+<Tip>
+  Cache loaded images and fonts to improve performance when generating multiple cards.
+</Tip>
+
+<Note>
+  Use `canvas.toBuffer('image/png')` to get image data that can be sent directly to Discord.
+</Note>
+
+<Warning>
+  Image manipulation operations can be CPU-intensive. Consider using a queue system for high-volume bots.
+</Warning>
+
+## Common Use Cases
+
+- Welcome/goodbye cards for new/leaving members
+- User profile cards with stats and progress bars
+- Server info banners
+- Leaderboard displays
+- Custom memes and image manipulation
+- Achievement badges and rewards
+- Activity graphs and charts
+
+## Source Code
+
+View the source code on GitHub: [`packages/canvas`](https://github.com/rinckodev/magicyan/tree/main/packages/canvas)

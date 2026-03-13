@@ -1,0 +1,503 @@
+---
+title: Embeds
+description: Enhanced embed builder functions for Discord.js
+---
+
+Advanced embed creation and manipulation functions with additional features beyond Discord.js.
+
+## createEmbed
+
+Creates an enhanced embed with extended functionality and convenience methods.
+
+```typescript
+function createEmbed<B extends boolean>(
+  options: CreateEmbedOptions<B>
+): EmbedPlusBuilderReturn<B>
+```
+
+<ParamField path="options" type="CreateEmbedOptions" required>
+  Configuration object for the embed:
+  - `title` (string | null): Embed title
+  - `color` (ColorResolvable | string | null): Embed color
+  - `description` (string | string[] | null): Embed description (arrays are joined with line breaks)
+  - `url` (string | null): Embed URL (can also accept objects with toString() method)
+  - `thumbnail` (EmbedPlusAssetData): Thumbnail image
+  - `image` (EmbedPlusAssetData): Main image
+  - `fields` (Partial of EmbedPlusFieldData array | null): Embed fields
+  - `timestamp` (string | number | Date | boolean | null): Timestamp (true = current time)
+  - `footer` (EmbedPlusFooterData | string): Footer configuration or text
+  - `author` (EmbedPlusAuthorData): Author configuration
+  - `extends` (EmbedPlusData | AnyEmbedData | EmbedBuilder): Base embed to extend
+  - `mergeFields` (boolean): Whether to merge fields from extended embed
+  - `array` (boolean): Return array of embeds instead of single embed
+  - `from` (InteractionWithEmbeds | MessageWithEmbeds): Source message/interaction to copy embeds from
+  - `fromIndex` (number): Index of embed to copy when using `from`
+</ParamField>
+
+### Returns
+
+- `EmbedPlusBuilder` - If `array` is false or undefined
+- `EmbedPlusBuilder[]` - If `array` is true
+
+### Examples
+
+<CodeGroup>
+```typescript Basic Embed
+import { createEmbed } from "@magicyan/discord";
+
+const embed = createEmbed({
+  title: "Welcome!",
+  description: "Thanks for joining our server.",
+  color: "#5865F2",
+  timestamp: true,
+  footer: "Server Bot"
+});
+
+await interaction.reply({ embeds: [embed] });
+```
+
+```typescript Multi-line Description
+import { createEmbed } from "@magicyan/discord";
+
+const embed = createEmbed({
+  title: "Server Rules",
+  description: [
+    "1. Be respectful to everyone",
+    "2. No spam or advertising",
+    "3. Keep discussions on-topic",
+    "4. Follow Discord ToS"
+  ],
+  color: "Red",
+  timestamp: true
+});
+```
+
+```typescript With Fields
+import { createEmbed } from "@magicyan/discord";
+
+const embed = createEmbed({
+  title: "User Information",
+  color: "Blue",
+  fields: [
+    { name: "Username", value: "JohnDoe#1234", inline: true },
+    { name: "ID", value: "123456789012345678", inline: true },
+    { name: "Joined", value: "<t:1234567890:R>", inline: true }
+  ],
+  thumbnail: interaction.user.displayAvatarURL(),
+  timestamp: true
+});
+```
+
+```typescript Extending Another Embed
+import { createEmbed } from "@magicyan/discord";
+
+const baseEmbed = createEmbed({
+  title: "Base Template",
+  color: "#5865F2",
+  footer: "My Bot"
+});
+
+const customEmbed = createEmbed({
+  extends: baseEmbed,
+  description: "This inherits the base settings",
+  fields: [{ name: "Extra Field", value: "New information" }]
+});
+```
+
+```typescript From Existing Message
+import { createEmbed } from "@magicyan/discord";
+
+// Copy embeds from a message
+const embeds = createEmbed({
+  array: true,
+  from: message
+});
+
+// Copy and modify a specific embed
+const embed = createEmbed({
+  from: interaction,
+  fromIndex: 0,
+  description: "Updated description"
+});
+```
+
+```typescript With Images
+import { createEmbed } from "@magicyan/discord";
+import { AttachmentBuilder } from "discord.js";
+
+const file = new AttachmentBuilder("./image.png", { name: "banner.png" });
+
+const embed = createEmbed({
+  title: "Image Example",
+  image: file,
+  thumbnail: "https://example.com/logo.png",
+  color: "Green"
+});
+
+await interaction.reply({ embeds: [embed], files: [file] });
+```
+</CodeGroup>
+
+<Tip>
+  Use arrays for the `description` field to automatically format multi-line content with proper line breaks.
+</Tip>
+
+---
+
+## EmbedPlusBuilder Class
+
+Extended embed builder with additional utility methods.
+
+### Methods
+
+#### update
+
+Update the embed with new data while preserving existing properties.
+
+```typescript
+embed.update(data: EmbedPlusData): this
+```
+
+```typescript
+const embed = createEmbed({ title: "Original Title", color: "Blue" });
+
+embed.update({
+  description: "Added description",
+  footer: "Updated footer"
+});
+// Title and color are preserved
+```
+
+#### has
+
+Check if the embed has a specific property.
+
+```typescript
+embed.has(property: keyof EmbedPlusData): boolean
+```
+
+```typescript
+if (embed.has("thumbnail")) {
+  console.log("Embed has a thumbnail");
+}
+
+if (!embed.has("footer")) {
+  embed.setFooter({ text: "Default footer" });
+}
+```
+
+#### toArray
+
+Convert the embed to a single-element array.
+
+```typescript
+embed.toArray(): EmbedPlusBuilder[]
+```
+
+```typescript
+const embed = createEmbed({ title: "Test" });
+const embeds = embed.toArray(); // [embed]
+
+await interaction.reply({ embeds });
+```
+
+#### toAttachment
+
+Convert the embed to a JSON attachment file.
+
+```typescript
+embed.toAttachment(data?: AttachmentData, space?: number): AttachmentBuilder
+```
+
+```typescript
+const embed = createEmbed({ title: "Export Test" });
+const file = embed.toAttachment({ name: "embed-export.json" }, 2);
+
+await interaction.reply({ files: [file] });
+```
+
+#### setAsset
+
+Set thumbnail or image asset.
+
+```typescript
+embed.setAsset(asset: "thumbnail" | "image", source: EmbedPlusAssetData): this
+```
+
+```typescript
+import { AttachmentBuilder } from "discord.js";
+
+const image = new AttachmentBuilder("./banner.png");
+embed.setAsset("image", image);
+embed.setAsset("thumbnail", "https://example.com/icon.png");
+```
+
+#### setElementImageURL
+
+Set image URL for specific embed elements.
+
+```typescript
+embed.setElementImageURL(
+  element: "thumbnail" | "image" | "author" | "footer",
+  url: string | null
+): this
+```
+
+```typescript
+embed.setElementImageURL("author", "https://example.com/avatar.png");
+embed.setElementImageURL("footer", "https://example.com/icon.png");
+embed.setElementImageURL("thumbnail", null); // Remove thumbnail
+```
+
+### Fields Property
+
+The `fields` property is an enhanced `EmbedPlusFields` instance with array-like operations.
+
+```typescript
+const embed = createEmbed({ title: "Test" });
+
+// Add fields
+embed.fields.push(
+  { name: "Field 1", value: "Value 1" },
+  { name: "Field 2", value: "Value 2" }
+);
+
+// Get field by name or index
+const field = embed.fields.get("Field 1");
+const field2 = embed.fields.get(0);
+
+// Update field
+embed.fields.update("Field 1", { value: "Updated value" });
+
+// Delete field
+embed.fields.delete("Field 2");
+
+// Clear all fields
+embed.fields.clear();
+
+// Iterate fields
+for (const field of embed.fields) {
+  console.log(field.name, field.value);
+}
+
+// Convert to array
+const fieldsArray = embed.fields.toArray();
+
+// Get as record object
+const record = embed.fields.record;
+// { "Field 1": "Value 1", "Field 2": "Value 2" }
+```
+
+---
+
+## createEmbedAuthor
+
+Creates embed author configuration from Discord entities.
+
+```typescript
+function createEmbedAuthor<T extends AuthorType>(
+  type: T,
+  options?: CreateEmbedAuthorOptions<T>
+): { name: string; url?: string; iconURL?: string }
+```
+
+<ParamField path="type" type="User | GuildMember | Guild" required>
+  Discord entity to create author from
+</ParamField>
+
+<ParamField path="options" type="CreateEmbedAuthorOptions">
+  Configuration options:
+  - `property` - Property to use for name (e.g., "username", "displayName", "nickname")
+  - `prefix` (string): Text to prepend to name
+  - `suffix` (string): Text to append to name
+  - `url` (string): URL to link author name
+  - `iconURL` (string): Override default icon URL
+  - `extension`, `forceStatic`, `size` - Image options
+</ParamField>
+
+### Examples
+
+<CodeGroup>
+```typescript User Author
+import { createEmbed, createEmbedAuthor } from "@magicyan/discord";
+
+const embed = createEmbed({
+  title: "User Profile",
+  author: createEmbedAuthor(interaction.user, {
+    property: "displayName"
+  }),
+  description: "User information"
+});
+```
+
+```typescript Member Author with Prefix
+import { createEmbed, createEmbedAuthor } from "@magicyan/discord";
+
+const member = interaction.guild.members.cache.get(userId);
+
+const embed = createEmbed({
+  title: "Member Stats",
+  author: createEmbedAuthor(member, {
+    property: "nickname",
+    prefix: "👤 ",
+    url: `https://discord.com/users/${member.id}`
+  })
+});
+```
+
+```typescript Guild Author
+import { createEmbed, createEmbedAuthor } from "@magicyan/discord";
+
+const embed = createEmbed({
+  title: "Server Announcement",
+  author: createEmbedAuthor(interaction.guild, {
+    property: "name"
+  }),
+  color: "#5865F2"
+});
+```
+</CodeGroup>
+
+---
+
+## createEmbedFooter
+
+Creates embed footer configuration.
+
+```typescript
+function createEmbedFooter(
+  options: string | EmbedPlusFooterData
+): EmbedFooterData | undefined
+```
+
+<ParamField path="options" type="string | EmbedPlusFooterData" required>
+  Footer text (string) or configuration object:
+  - `text` (string | null): Footer text
+  - `iconURL` (string | null): Footer icon URL
+</ParamField>
+
+### Examples
+
+```typescript
+import { createEmbed, createEmbedFooter } from "@magicyan/discord";
+
+// Simple text footer
+const embed1 = createEmbed({
+  title: "Test",
+  footer: "Bot v1.0"
+});
+
+// Footer with icon
+const embed2 = createEmbed({
+  title: "Test",
+  footer: createEmbedFooter({
+    text: "My Bot",
+    iconURL: client.user.displayAvatarURL()
+  })
+});
+```
+
+---
+
+## createEmbedAsset
+
+Converts various asset types to embed-compatible format.
+
+```typescript
+function createEmbedAsset(
+  source: EmbedPlusAssetData,
+  options?: EmbedAssetOptions
+): EmbedAssetData | undefined
+```
+
+<ParamField path="source" type="EmbedPlusAssetData" required>
+  Asset source:
+  - `string` - Direct URL
+  - `Attachment` - Discord attachment
+  - `AttachmentBuilder` - Built attachment
+  - `EmbedAssetData` - Existing asset data
+  - `null` / `undefined` - No asset
+</ParamField>
+
+### Examples
+
+```typescript
+import { createEmbed, createEmbedAsset } from "@magicyan/discord";
+import { AttachmentBuilder } from "discord.js";
+
+// URL asset
+const embed1 = createEmbed({
+  title: "Test",
+  image: createEmbedAsset("https://example.com/image.png")
+});
+
+// Attachment asset
+const file = new AttachmentBuilder("./logo.png", { name: "logo.png" });
+const embed2 = createEmbed({
+  title: "Test",
+  thumbnail: createEmbedAsset(file)
+});
+```
+
+---
+
+## createEmbedFiles
+
+Converts embed URLs to attachments for better message optimization.
+
+```typescript
+function createEmbedFiles(
+  embed: EmbedBuilder,
+  options?: CreateEmbedFilesOptions
+): AttachmentBuilder[]
+```
+
+<ParamField path="embed" type="EmbedBuilder" required>
+  Embed to extract images from
+</ParamField>
+
+<ParamField path="options" type="CreateEmbedFilesOptions">
+  Configuration options:
+  - `ignore` (ImageElementProperty[]): Elements to skip
+  - `extensions` (Record): File extensions per element
+  - `names` (Record): Custom filenames per element
+</ParamField>
+
+### Example
+
+```typescript
+import { createEmbed, createEmbedFiles } from "@magicyan/discord";
+
+const embed = createEmbed({
+  title: "Images",
+  thumbnail: "https://example.com/thumb.png",
+  image: "https://example.com/banner.jpg",
+  author: {
+    name: "Author",
+    iconURL: "https://example.com/avatar.png"
+  }
+});
+
+// Convert URLs to attachments
+const files = createEmbedFiles(embed, {
+  ignore: ["footer"],
+  extensions: {
+    thumbnail: "png",
+    image: "jpg"
+  },
+  names: {
+    thumbnail: "thumb",
+    image: "banner"
+  }
+});
+
+await interaction.reply({ embeds: [embed], files });
+```
+
+<Warning>
+  When using `createEmbedFiles`, the embed is modified in place to reference `attachment://` URLs instead of external URLs.
+</Warning>
+
+<Tip>
+  Converting external URLs to attachments can improve message load times and reduce dependency on external services.
+</Tip>

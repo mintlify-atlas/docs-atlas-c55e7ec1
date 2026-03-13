@@ -1,0 +1,68 @@
+---
+title: "Convert Functions"
+description: "Color conversion utilities for hexadecimal and RGB formats"
+---
+
+## hexToRgb
+
+Converts a hexadecimal color string to its numeric RGB representation.
+
+```typescript
+function hexToRgb(color: Color): number
+```
+
+<ParamField path="color" type="string" required>
+  A hexadecimal color string (e.g., `"#FFFFFF"`) or a plain string representing a hex value.
+</ParamField>
+
+**Returns:** `number` - A number representing the RGB value parsed from the hexadecimal string.
+
+### Examples
+
+```typescript
+import { hexToRgb } from "@magicyan/core";
+
+hexToRgb("#FFFFFF");
+// Returns: 16777215
+
+hexToRgb("000000");
+// Returns: 0
+
+hexToRgb("#FF5733");
+// Returns: 16724755
+```
+
+---
+
+## rgbToHex
+
+Converts a numeric RGB value to its hexadecimal color string representation.
+
+```typescript
+function rgbToHex(rgb: number, includeHash?: boolean): string
+```
+
+<ParamField path="rgb" type="number" required>
+  The numeric RGB value to convert.
+</ParamField>
+
+<ParamField path="includeHash" type="boolean" default="true">
+  Whether to prefix the result with `#`.
+</ParamField>
+
+**Returns:** `string` - A hexadecimal color string representing the RGB value, optionally prefixed with `#`.
+
+### Examples
+
+```typescript
+import { rgbToHex } from "@magicyan/core";
+
+rgbToHex(16777215);
+// Returns: "#ffffff"
+
+rgbToHex(0, false);
+// Returns: "000000"
+
+rgbToHex(16724755);
+// Returns: "#ff5733"
+```

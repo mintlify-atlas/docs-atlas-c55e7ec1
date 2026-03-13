@@ -1,0 +1,414 @@
+---
+title: '@magicyan/discord-events'
+description: Extended Discord.js events for enhanced bot functionality
+icon: bolt
+---
+
+The `@magicyan/discord-events` package provides extended events beyond what Discord.js offers by default. These events are built on top of Discord.js audit logs and state changes to provide more granular event tracking.
+
+## Installation
+
+<CodeGroup>
+```bash npm
+npm install @magicyan/discord-events discord.js
+```
+
+```bash pnpm
+pnpm add @magicyan/discord-events discord.js
+```
+
+```bash yarn
+yarn add @magicyan/discord-events discord.js
+```
+</CodeGroup>
+
+<Note>
+  Requires `discord.js` v14.19.2 or higher as a peer dependency.
+</Note>
+
+## Available Events
+
+The package extends Discord.js with the following events:
+
+### Role Events
+
+<AccordionGroup>
+  <Accordion title="extendedRoleCreate">
+    Fires when a role is created with additional audit log information.
+    
+    **Parameters:**
+    - `role` - The created role
+    - `executor` - The user who created the role (from audit log)
+  </Accordion>
+  
+  <Accordion title="extendedRoleDelete">
+    Fires when a role is deleted with audit log context.
+    
+    **Parameters:**
+    - `role` - The deleted role
+    - `executor` - The user who deleted the role
+  </Accordion>
+  
+  <Accordion title="extendedRoleUpdate">
+    Fires when a role is updated with change details.
+    
+    **Parameters:**
+    - `oldRole` - The role before update
+    - `newRole` - The role after update
+    - `executor` - The user who made the change
+  </Accordion>
+</AccordionGroup>
+
+### Channel Events
+
+<AccordionGroup>
+  <Accordion title="extendedChannelDelete">
+    Fires when a channel is deleted with executor information.
+    
+    **Parameters:**
+    - `channel` - The deleted channel
+    - `executor` - The user who deleted the channel
+  </Accordion>
+  
+  <Accordion title="guildChannelDelete">
+    Alias for `extendedChannelDelete` for backward compatibility.
+  </Accordion>
+</AccordionGroup>
+
+### Member Voice Events
+
+<AccordionGroup>
+  <Accordion title="guildMemberConnect">
+    Fires when a member joins a voice channel.
+    
+    **Parameters:**
+    - `member` - The member who connected
+    - `channel` - The voice channel they joined
+  </Accordion>
+  
+  <Accordion title="guildMemberDisconnect">
+    Fires when a member leaves a voice channel.
+    
+    **Parameters:**
+    - `member` - The member who disconnected
+    - `channel` - The voice channel they left
+  </Accordion>
+  
+  <Accordion title="guildMemberMoved">
+    Fires when a member moves between voice channels.
+    
+    **Parameters:**
+    - `member` - The member who moved
+    - `oldChannel` - The channel they left
+    - `newChannel` - The channel they joined
+  </Accordion>
+</AccordionGroup>
+
+### Member Moderation Events
+
+<AccordionGroup>
+  <Accordion title="guildMemberTimeoutAdd">
+    Fires when a member receives a timeout.
+    
+    **Parameters:**
+    - `member` - The timed out member
+    - `timeout` - The timeout end timestamp
+    - `executor` - The moderator who applied the timeout
+    - `reason` - The reason for the timeout
+  </Accordion>
+  
+  <Accordion title="guildMemberTimeoutRemove">
+    Fires when a timeout is removed from a member.
+    
+    **Parameters:**
+    - `member` - The member whose timeout was removed
+    - `executor` - The moderator who removed the timeout
+  </Accordion>
+</AccordionGroup>
+
+### User Moderation Events
+
+<AccordionGroup>
+  <Accordion title="userBanAdd">
+    Fires when a user is banned from the guild.
+    
+    **Parameters:**
+    - `user` - The banned user
+    - `guild` - The guild they were banned from
+    - `executor` - The moderator who banned them
+    - `reason` - The ban reason
+  </Accordion>
+  
+  <Accordion title="userBanRemove">
+    Fires when a user is unbanned.
+    
+    **Parameters:**
+    - `user` - The unbanned user
+    - `guild` - The guild they were unbanned from
+    - `executor` - The moderator who unbanned them
+  </Accordion>
+  
+  <Accordion title="userKick">
+    Fires when a member is kicked from the guild.
+    
+    **Parameters:**
+    - `member` - The kicked member
+    - `executor` - The moderator who kicked them
+    - `reason` - The kick reason
+  </Accordion>
+</AccordionGroup>
+
+### Message Events
+
+<AccordionGroup>
+  <Accordion title="webhookMessageCreate">
+    Fires when a message is sent by a webhook.
+    
+    **Parameters:**
+    - `message` - The webhook message
+    - `webhook` - The webhook that sent it
+  </Accordion>
+</AccordionGroup>
+
+## Setup
+
+Initialize the extended events on your Discord client:
+
+```typescript
+import { Client } from 'discord.js';
+import { initDiscordEvents } from '@magicyan/discord-events';
+
+const client = new Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMembers,
+    GatewayIntentBits.GuildVoiceStates,
+    GatewayIntentBits.GuildModeration,
+    // Add other intents as needed
+  ]
+});
+
+// Initialize extended events
+initDiscordEvents(client);
+
+client.login(process.env.DISCORD_TOKEN);
+```
+
+<Warning>
+  The bot must have the **View Audit Log** permission to access executor information in most events.
+</Warning>
+
+## Usage Examples
+
+### Voice State Tracking
+
+```typescript
+import { Client } from 'discord.js';
+
+client.on('guildMemberConnect', (member, channel) => {
+  console.log(`${member.user.tag} joined ${channel.name}`);
+  
+  // Send welcome message in voice channel's text channel
+  const textChannel = channel.guild.channels.cache
+    .find(ch => ch.name === channel.name && ch.isTextBased());
+    
+  textChannel?.send(`Welcome to ${channel.name}, ${member}!`);
+});
+
+client.on('guildMemberDisconnect', (member, channel) => {
+  console.log(`${member.user.tag} left ${channel.name}`);
+});
+
+client.on('guildMemberMoved', (member, oldChannel, newChannel) => {
+  console.log(`${member.user.tag} moved from ${oldChannel.name} to ${newChannel.name}`);
+});
+```
+
+### Moderation Logging
+
+```typescript
+client.on('userBanAdd', async (user, guild, executor, reason) => {
+  const logChannel = guild.channels.cache.find(
+    ch => ch.name === 'mod-logs'
+  );
+  
+  if (!logChannel?.isTextBased()) return;
+  
+  await logChannel.send({
+    embeds: [{
+      title: 'User Banned',
+      fields: [
+        { name: 'User', value: `${user.tag} (${user.id})`, inline: true },
+        { name: 'Moderator', value: executor.tag, inline: true },
+        { name: 'Reason', value: reason || 'No reason provided' }
+      ],
+      color: 0xff0000,
+      timestamp: new Date().toISOString()
+    }]
+  });
+});
+
+client.on('userKick', async (member, executor, reason) => {
+  const logChannel = member.guild.channels.cache.find(
+    ch => ch.name === 'mod-logs'
+  );
+  
+  if (!logChannel?.isTextBased()) return;
+  
+  await logChannel.send({
+    embeds: [{
+      title: 'Member Kicked',
+      fields: [
+        { name: 'Member', value: `${member.user.tag}`, inline: true },
+        { name: 'Moderator', value: executor.tag, inline: true },
+        { name: 'Reason', value: reason || 'No reason provided' }
+      ],
+      color: 0xffa500
+    }]
+  });
+});
+```
+
+### Timeout Tracking
+
+```typescript
+client.on('guildMemberTimeoutAdd', async (member, timeout, executor, reason) => {
+  const logChannel = member.guild.channels.cache.find(
+    ch => ch.name === 'mod-logs'
+  );
+  
+  if (!logChannel?.isTextBased()) return;
+  
+  const duration = Math.floor((timeout - Date.now()) / 1000);
+  
+  await logChannel.send({
+    embeds: [{
+      title: 'Member Timed Out',
+      fields: [
+        { name: 'Member', value: member.user.tag, inline: true },
+        { name: 'Moderator', value: executor.tag, inline: true },
+        { name: 'Duration', value: `${duration} seconds`, inline: true },
+        { name: 'Reason', value: reason || 'No reason provided' }
+      ],
+      color: 0xffff00,
+      timestamp: new Date().toISOString()
+    }]
+  });
+});
+
+client.on('guildMemberTimeoutRemove', async (member, executor) => {
+  console.log(`Timeout removed from ${member.user.tag} by ${executor.tag}`);
+});
+```
+
+### Role Change Auditing
+
+```typescript
+client.on('extendedRoleCreate', async (role, executor) => {
+  const logChannel = role.guild.channels.cache.find(
+    ch => ch.name === 'audit-logs'
+  );
+  
+  if (!logChannel?.isTextBased()) return;
+  
+  await logChannel.send(
+    `Role **${role.name}** was created by ${executor.tag}`
+  );
+});
+
+client.on('extendedRoleDelete', async (role, executor) => {
+  const logChannel = role.guild.channels.cache.find(
+    ch => ch.name === 'audit-logs'
+  );
+  
+  if (!logChannel?.isTextBased()) return;
+  
+  await logChannel.send(
+    `Role **${role.name}** was deleted by ${executor.tag}`
+  );
+});
+
+client.on('extendedRoleUpdate', async (oldRole, newRole, executor) => {
+  if (oldRole.name !== newRole.name) {
+    console.log(
+      `Role renamed from "${oldRole.name}" to "${newRole.name}" by ${executor.tag}`
+    );
+  }
+});
+```
+
+### Webhook Detection
+
+```typescript
+client.on('webhookMessageCreate', async (message, webhook) => {
+  console.log(`Webhook message from ${webhook.name}: ${message.content}`);
+  
+  // Filter out webhook messages from certain integrations
+  if (webhook.name === 'GitHub') {
+    // Handle GitHub webhook messages differently
+  }
+});
+
+// Compare with regular messages
+client.on('messageCreate', message => {
+  if (!message.webhookId) {
+    // This is a regular user message, not a webhook
+    console.log(`User message from ${message.author.tag}`);
+  }
+});
+```
+
+## TypeScript Support
+
+The package extends the Discord.js `ClientEvents` interface, providing full TypeScript support:
+
+```typescript
+import type { Client } from 'discord.js';
+
+// TypeScript knows about the extended events
+client.on('guildMemberConnect', (member, channel) => {
+  // member is typed as GuildMember
+  // channel is typed as VoiceChannel
+});
+
+client.on('userBanAdd', (user, guild, executor, reason) => {
+  // user is typed as User
+  // guild is typed as Guild
+  // executor is typed as User
+  // reason is typed as string | null
+});
+```
+
+## Required Intents
+
+Different events require specific Discord gateway intents:
+
+| Event Category | Required Intents |
+|----------------|------------------|
+| Voice Events | `GuildVoiceStates` |
+| Moderation Events | `GuildModeration`, `GuildMembers` |
+| Role Events | `Guilds` |
+| Channel Events | `Guilds` |
+| Webhook Events | `GuildMessages`, `MessageContent` |
+
+<Note>
+  Most events also require the **View Audit Log** permission to provide executor information.
+</Note>
+
+## Best Practices
+
+<Tip>
+  Use these extended events to build comprehensive audit logging systems for your bot.
+</Tip>
+
+<Warning>
+  Audit log events may have a slight delay. Don't rely on them for real-time critical functionality.
+</Warning>
+
+<Note>
+  The `webhookMessageCreate` event is useful for filtering webhook messages from user messages in your bot's logic.
+</Note>
+
+## Source Code
+
+View the source code on GitHub: [`packages/discord-events`](https://github.com/rinckodev/magicyan/tree/main/packages/discord-events)

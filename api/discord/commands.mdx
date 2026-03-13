@@ -1,0 +1,128 @@
+---
+title: Commands
+description: Utility functions for finding and mentioning Discord application commands
+icon: terminal
+---
+
+## findCommand
+
+Find application commands in a guild or client by various criteria.
+
+```typescript
+function findCommand(guildOrClient: Guild | Client<true>)
+```
+
+### Parameters
+
+<ParamField path="guildOrClient" type="Guild | Client<true>" required>
+  The Discord guild or client instance to search commands from
+</ParamField>
+
+### Returns
+
+<ResponseField name="return" type="object">
+  An object with methods to find commands:
+  
+  <ResponseField name="byName" type="(name: string, and?: FindCommandFilter) => ApplicationCommand | undefined">
+    Find a command by its name with an optional additional filter
+  </ResponseField>
+  
+  <ResponseField name="byId" type="(id: string) => ApplicationCommand | undefined">
+    Find a command by its ID
+  </ResponseField>
+  
+  <ResponseField name="byFilter" type="(filter: FindCommandFilter) => ApplicationCommand | undefined">
+    Find a command using a custom filter function
+  </ResponseField>
+</ResponseField>
+
+### Example
+
+```typescript
+import { findCommand } from "@magicyan/discord";
+
+// Find command in a guild
+const pingCommand = findCommand(guild).byName("ping");
+
+// Find command globally from client
+const helpCommand = findCommand(client).byName("help");
+
+// Find command by ID
+const command = findCommand(guild).byId("1234567890");
+
+// Find with additional filter
+const moderationCommand = findCommand(guild).byName(
+  "ban",
+  (cmd) => cmd.defaultMemberPermissions?.has("BanMembers")
+);
+
+// Find with custom filter
+const adminCommands = findCommand(guild).byFilter(
+  (cmd) => cmd.defaultMemberPermissions?.has("Administrator")
+);
+```
+
+<Note>
+  The `FindCommandFilter` type is `(command: ApplicationCommand) => boolean`
+</Note>
+
+---
+
+## commandMention
+
+Generate a clickable mention string for a Discord command.
+
+```typescript
+function commandMention(command: CommandMentionData, group?: string, subcommand?: string): string
+function commandMention(command: CommandMentionData, subcommand?: string): string
+```
+
+### Parameters
+
+<ParamField path="command" type="CommandMentionData" required>
+  The command data containing `id` and `name` properties
+</ParamField>
+
+<ParamField path="group" type="string">
+  The command group name (for nested subcommands)
+</ParamField>
+
+<ParamField path="subcommand" type="string">
+  The subcommand name
+</ParamField>
+
+### Returns
+
+<ResponseField name="return" type="string">
+  A formatted command mention string that will render as a clickable command in Discord
+</ResponseField>
+
+### Example
+
+```typescript
+import { commandMention } from "@magicyan/discord";
+
+// Simple command mention
+const command = { id: "1234567890", name: "ping" };
+const mention = commandMention(command);
+// Result: </ping:1234567890>
+
+// Command with subcommand
+const userCommand = { id: "9876543210", name: "user" };
+const userInfo = commandMention(userCommand, "info");
+// Result: </user info:9876543210>
+
+// Command with group and subcommand
+const modCommand = { id: "1122334455", name: "moderation" };
+const modBan = commandMention(modCommand, "user", "ban");
+// Result: </moderation user ban:1122334455>
+
+// Use in interaction replies
+await interaction.reply({
+  content: `Use ${commandMention(command)} to check bot latency!`
+});
+```
+
+<Note>
+  This function wraps Discord.js's `chatInputApplicationCommandMention` with a more flexible API
+</Note>

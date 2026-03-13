@@ -1,0 +1,354 @@
+---
+title: 'Event Handling'
+description: 'Master custom events and advanced event handling patterns with @magicyan/discord-events'
+icon: 'bolt'
+---
+
+# Event Handling
+
+Magicyan extends Discord.js with custom event types that provide more specific and useful event data. This guide covers how to use these extended events and implement custom event handlers.
+
+## Extended Events
+
+The `@magicyan/discord-events` package adds new event types to the Discord.js client that aren't available by default.
+
+### Setup
+
+First, initialize the extended events on your client:
+
+```typescript
+import { Client } from 'discord.js';
+import { initDiscordEvents } from '@magicyan/discord-events';
+
+const client = new Client({ /* ... */ });
+
+// Enable all extended events
+initDiscordEvents(client);
+```
+
+<Tip>
+  Call `initDiscordEvents` immediately after creating your client and before logging in.
+</Tip>
+
+## Available Extended Events
+
+### Voice Events
+
+<Steps>
+  <Step title="guildMemberConnect">
+    Fires when a member joins a voice channel.
+
+    ```typescript
+    client.on('guildMemberConnect', (member, channel, oldChannel) => {
+      console.log(`${member.user.tag} joined ${channel.name}`);
+      
+      if (oldChannel) {
+        console.log(`Moved from ${oldChannel.name}`);
+      } else {
+        console.log('Connected to voice for the first time');
+      }
+    });
+    ```
+
+    **Parameters:**
+    - `member` - The guild member who connected
+    - `channel` - The voice channel they joined
+    - `oldChannel` - The previous channel (null if connecting for the first time)
+  </Step>
+
+  <Step title="guildMemberDisconnect">
+    Fires when a member leaves a voice channel.
+
+    ```typescript
+    client.on('guildMemberDisconnect', (member, channel) => {
+      console.log(`${member.user.tag} left ${channel.name}`);
+    });
+    ```
+
+    **Parameters:**
+    - `member` - The guild member who disconnected
+    - `channel` - The voice channel they left
+  </Step>
+
+  <Step title="guildMemberMoved">
+    Fires when a member is moved between voice channels.
+
+    ```typescript
+    client.on('guildMemberMoved', (member, oldChannel, newChannel) => {
+      console.log(`${member.user.tag} moved from ${oldChannel.name} to ${newChannel.name}`);
+    });
+    ```
+
+    **Parameters:**
+    - `member` - The guild member who was moved
+    - `oldChannel` - The previous voice channel
+    - `newChannel` - The new voice channel
+  </Step>
+</Steps>
+
+### Moderation Events
+
+<Steps>
+  <Step title="userBanAdd">
+    Fires when a user is banned from a guild.
+
+    ```typescript
+    client.on('userBanAdd', (ban, executor) => {
+      console.log(`${ban.user.tag} was banned by ${executor.tag}`);
+      console.log(`Reason: ${ban.reason ?? 'No reason provided'}`);
+    });
+    ```
+
+    **Parameters:**
+    - `ban` - The GuildBan object
+    - `executor` - The user who performed the ban
+  </Step>
+
+  <Step title="userBanRemove">
+    Fires when a user is unbanned from a guild.
+
+    ```typescript
+    client.on('userBanRemove', (ban, executor) => {
+      console.log(`${ban.user.tag} was unbanned by ${executor.tag}`);
+    });
+    ```
+  </Step>
+
+  <Step title="userKick">
+    Fires when a user is kicked from a guild.
+
+    ```typescript
+    client.on('userKick', (member, executor, reason) => {
+      console.log(`${member.user.tag} was kicked by ${executor.tag}`);
+      console.log(`Reason: ${reason ?? 'No reason provided'}`);
+    });
+    ```
+
+    **Parameters:**
+    - `member` - The guild member who was kicked
+    - `executor` - The user who performed the kick
+    - `reason` - The reason for the kick (if provided)
+  </Step>
+
+  <Step title="guildMemberTimeoutAdd">
+    Fires when a member is timed out.
+
+    ```typescript
+    client.on('guildMemberTimeoutAdd', (member, executor, timeout) => {
+      console.log(`${member.user.tag} was timed out by ${executor.tag}`);
+      console.log(`Until: ${timeout.communicationDisabledUntil}`);
+    });
+    ```
+  </Step>
+
+  <Step title="guildMemberTimeoutRemove">
+    Fires when a member's timeout is removed.
+
+    ```typescript
+    client.on('guildMemberTimeoutRemove', (member, executor) => {
+      console.log(`${member.user.tag}'s timeout was removed by ${executor.tag}`);
+    });
+    ```
+  </Step>
+</Steps>
+
+### Role Events
+
+<Steps>
+  <Step title="extendedRoleCreate">
+    Enhanced role creation event with executor information.
+
+    ```typescript
+    client.on('extendedRoleCreate', (role, executor) => {
+      console.log(`Role ${role.name} was created by ${executor.tag}`);
+    });
+    ```
+  </Step>
+
+  <Step title="extendedRoleDelete">
+    Enhanced role deletion event with executor information.
+
+    ```typescript
+    client.on('extendedRoleDelete', (role, executor) => {
+      console.log(`Role ${role.name} was deleted by ${executor.tag}`);
+    });
+    ```
+  </Step>
+
+  <Step title="extendedRoleUpdate">
+    Enhanced role update event with executor information.
+
+    ```typescript
+    client.on('extendedRoleUpdate', (oldRole, newRole, executor) => {
+      if (oldRole.name !== newRole.name) {
+        console.log(`${executor.tag} renamed ${oldRole.name} to ${newRole.name}`);
+      }
+    });
+    ```
+  </Step>
+</Steps>
+
+### Channel Events
+
+```typescript
+client.on('extendedChannelDelete', (channel, executor) => {
+  console.log(`Channel ${channel.name} was deleted by ${executor.tag}`);
+});
+```
+
+### Message Events
+
+```typescript
+client.on('webhookMessageCreate', (message, webhook) => {
+  console.log(`Webhook message from ${webhook.name}: ${message.content}`);
+});
+```
+
+## Event Handler Patterns
+
+### Modular Event Files
+
+Organize events into separate files for better maintainability:
+
+<CodeGroup>
+```typescript events/voice.ts
+import type { Client } from 'discord.js';
+
+export function registerVoiceEvents(client: Client) {
+  client.on('guildMemberConnect', (member, channel, oldChannel) => {
+    // Handle voice connection
+  });
+
+  client.on('guildMemberDisconnect', (member, channel) => {
+    // Handle voice disconnection
+  });
+}
+```
+
+```typescript events/moderation.ts
+import type { Client } from 'discord.js';
+
+export function registerModerationEvents(client: Client) {
+  client.on('userBanAdd', (ban, executor) => {
+    // Log ban to moderation channel
+  });
+
+  client.on('userKick', (member, executor, reason) => {
+    // Log kick to moderation channel
+  });
+}
+```
+
+```typescript index.ts
+import { initDiscordEvents } from '@magicyan/discord-events';
+import { registerVoiceEvents } from './events/voice';
+import { registerModerationEvents } from './events/moderation';
+
+const client = new Client({ /* ... */ });
+initDiscordEvents(client);
+
+// Register all event handlers
+registerVoiceEvents(client);
+registerModerationEvents(client);
+```
+</CodeGroup>
+
+### Async Event Handlers
+
+Handle asynchronous operations safely:
+
+```typescript
+client.on('userBanAdd', async (ban, executor) => {
+  try {
+    const modLogChannel = await client.channels.fetch(MOD_LOG_CHANNEL_ID);
+    
+    if (modLogChannel?.isTextBased()) {
+      await modLogChannel.send({
+        content: `🔨 **Ban** | ${ban.user.tag}\nBy: ${executor.tag}\nReason: ${ban.reason ?? 'None'}`,
+      });
+    }
+  } catch (error) {
+    console.error('Failed to log ban:', error);
+  }
+});
+```
+
+<Warning>
+  Always wrap async event handlers in try-catch blocks to prevent unhandled promise rejections.
+</Warning>
+
+## TypeScript Support
+
+All extended events are fully typed. Import event types for better type safety:
+
+```typescript
+import type { 
+  GuildMemberConnectEvent,
+  UserBanAddEvent,
+  ExtendedRoleCreateEvent 
+} from '@magicyan/discord-events';
+
+function handleConnect(...args: GuildMemberConnectEvent) {
+  const [member, channel, oldChannel] = args;
+  // Fully typed parameters
+}
+
+client.on('guildMemberConnect', handleConnect);
+```
+
+## Practical Example
+
+Here's a complete example of a voice tracking system:
+
+```typescript
+import { Client, GatewayIntentBits } from 'discord.js';
+import { initDiscordEvents } from '@magicyan/discord-events';
+
+const client = new Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildVoiceStates,
+  ],
+});
+
+initDiscordEvents(client);
+
+// Track voice session times
+const voiceSessions = new Map<string, Date>();
+
+client.on('guildMemberConnect', (member, channel) => {
+  voiceSessions.set(member.id, new Date());
+  console.log(`📞 ${member.user.tag} joined ${channel.name}`);
+});
+
+client.on('guildMemberDisconnect', (member, channel) => {
+  const joinTime = voiceSessions.get(member.id);
+  
+  if (joinTime) {
+    const duration = Date.now() - joinTime.getTime();
+    const minutes = Math.floor(duration / 60000);
+    
+    console.log(`📴 ${member.user.tag} left ${channel.name}`);
+    console.log(`Duration: ${minutes} minutes`);
+    
+    voiceSessions.delete(member.id);
+  }
+});
+
+client.on('guildMemberMoved', (member, oldChannel, newChannel) => {
+  console.log(`🔀 ${member.user.tag} moved from ${oldChannel.name} to ${newChannel.name}`);
+});
+
+client.login(process.env.DISCORD_TOKEN);
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Component Builders" icon="cube" href="/guides/component-builders">
+    Build interactive UI components
+  </Card>
+  <Card title="API Reference" icon="code" href="/packages/discord-events">
+    View all extended event types
+  </Card>
+</CardGroup>

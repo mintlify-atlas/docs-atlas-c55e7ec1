@@ -1,0 +1,546 @@
+---
+title: 'Canvas Operations'
+description: 'Create dynamic images with filters, gradients, and custom fonts using @magicyan/canvas'
+icon: 'palette'
+---
+
+# Canvas Operations
+
+Magicyan's canvas package provides powerful utilities for image manipulation, including filters, gradients, and font management. Built on top of `@napi-rs/canvas`, it offers a clean API for creating dynamic images.
+
+## Installation
+
+Install the canvas package:
+
+```bash
+npm install @magicyan/canvas @napi-rs/canvas
+```
+
+<Note>
+  `@napi-rs/canvas` is a native Node.js canvas implementation that doesn't require external dependencies like Cairo.
+</Note>
+
+## Basic Canvas Setup
+
+Create a canvas and get the rendering context:
+
+```typescript
+import { createCanvas, loadImage } from '@napi-rs/canvas';
+
+const canvas = createCanvas(800, 600);
+const ctx = canvas.getContext('2d');
+
+// Draw something
+ctx.fillStyle = '#5865F2';
+ctx.fillRect(0, 0, 800, 600);
+```
+
+## Filters
+
+The `Filter` object provides CSS-like filter functions:
+
+<Steps>
+  <Step title="Blur">
+    Apply blur effect:
+
+    ```typescript
+    import { blur } from '@magicyan/canvas';
+
+    ctx.filter = blur(5);
+    ctx.drawImage(image, 0, 0);
+    ```
+  </Step>
+
+  <Step title="Opacity">
+    Change opacity:
+
+    ```typescript
+    import { opacity } from '@magicyan/canvas';
+
+    ctx.filter = opacity(50); // 50% opacity
+    ctx.drawImage(image, 0, 0);
+    ```
+  </Step>
+
+  <Step title="Brightness & Contrast">
+    Adjust image brightness and contrast:
+
+    ```typescript
+    import { brightness, contrast } from '@magicyan/canvas';
+
+    ctx.filter = brightness(120); // 120% brightness
+    ctx.drawImage(image, 0, 0);
+
+    ctx.filter = contrast(150); // 150% contrast
+    ctx.drawImage(image, 0, 0);
+    ```
+  </Step>
+
+  <Step title="Grayscale & Sepia">
+    Apply color effects:
+
+    ```typescript
+    import { grayscale, sepia } from '@magicyan/canvas';
+
+    ctx.filter = grayscale(100); // Full grayscale
+    ctx.drawImage(image, 0, 0);
+
+    ctx.filter = sepia(75); // 75% sepia
+    ctx.drawImage(image, 0, 0);
+    ```
+  </Step>
+
+  <Step title="Hue Rotate">
+    Rotate colors:
+
+    ```typescript
+    import { hueRotate } from '@magicyan/canvas';
+
+    ctx.filter = hueRotate(180); // Rotate hue by 180 degrees
+    ctx.drawImage(image, 0, 0);
+    ```
+  </Step>
+
+  <Step title="Invert">
+    Invert colors:
+
+    ```typescript
+    import { invert } from '@magicyan/canvas';
+
+    ctx.filter = invert(100); // Full inversion
+    ctx.drawImage(image, 0, 0);
+    ```
+  </Step>
+
+  <Step title="Drop Shadow">
+    Add drop shadows:
+
+    ```typescript
+    import { dropShadow } from '@magicyan/canvas';
+
+    ctx.filter = dropShadow(4, 4, 8, 'rgba(0, 0, 0, 0.5)');
+    ctx.fillText('Shadow Text', 100, 100);
+    ```
+  </Step>
+</Steps>
+
+### Combining Filters
+
+Combine multiple filters by concatenating them:
+
+```typescript
+import { blur, brightness, contrast } from '@magicyan/canvas';
+
+const filters = [
+  blur(2),
+  brightness(110),
+  contrast(120)
+].join(' ');
+
+ctx.filter = filters;
+ctx.drawImage(image, 0, 0);
+
+// Reset filters
+ctx.filter = 'none';
+```
+
+<Tip>
+  Always reset `ctx.filter` to `'none'` after using filters to avoid affecting subsequent drawing operations.
+</Tip>
+
+## Gradients
+
+### Creating Gradients
+
+Use `setGradientStops` to easily create gradients:
+
+```typescript
+import { setGradientStops } from '@magicyan/canvas';
+
+// Linear gradient
+const gradient = ctx.createLinearGradient(0, 0, 800, 0);
+setGradientStops(gradient, {
+  0: '#5865F2',
+  0.5: '#7289DA',
+  1: '#99AAB5',
+});
+
+ctx.fillStyle = gradient;
+ctx.fillRect(0, 0, 800, 600);
+```
+
+### Radial Gradients
+
+Create radial gradients for circular effects:
+
+```typescript
+import { setGradientStops } from '@magicyan/canvas';
+
+// Radial gradient from center
+const gradient = ctx.createRadialGradient(
+  400, 300, 0,    // Start circle (center, radius 0)
+  400, 300, 300   // End circle (center, radius 300)
+);
+
+setGradientStops(gradient, {
+  0: '#FFFFFF',
+  0.5: '#5865F2',
+  1: '#000000',
+});
+
+ctx.fillStyle = gradient;
+ctx.fillRect(0, 0, 800, 600);
+```
+
+### Gradient Patterns
+
+<CodeGroup>
+```typescript vertical-gradient.ts
+import { setGradientStops } from '@magicyan/canvas';
+
+const gradient = ctx.createLinearGradient(0, 0, 0, 600);
+setGradientStops(gradient, {
+  0: '#ED4245',
+  0.33: '#FEE75C',
+  0.66: '#57F287',
+  1: '#5865F2',
+});
+
+ctx.fillStyle = gradient;
+ctx.fillRect(0, 0, 800, 600);
+```
+
+```typescript diagonal-gradient.ts
+import { setGradientStops } from '@magicyan/canvas';
+
+const gradient = ctx.createLinearGradient(0, 0, 800, 600);
+setGradientStops(gradient, {
+  0: '#5865F2',
+  1: '#EB459E',
+});
+
+ctx.fillStyle = gradient;
+ctx.fillRect(0, 0, 800, 600);
+```
+</CodeGroup>
+
+## Font Management
+
+The `CanvasContextFont` class provides a clean API for font management:
+
+### Basic Font Setup
+
+```typescript
+import { CanvasContextFont } from '@magicyan/canvas';
+import { createCanvas } from '@napi-rs/canvas';
+
+const canvas = createCanvas(800, 600);
+const ctx = canvas.getContext('2d');
+
+// Create font manager
+const font = new CanvasContextFont(ctx, {
+  family: 'Arial',
+  size: 24,
+  weight: 'bold',
+  style: 'normal',
+  align: 'center',
+  baseline: 'middle',
+});
+
+// Font is automatically applied to context
+ctx.fillText('Hello World', 400, 300);
+```
+
+### Font Properties
+
+<Steps>
+  <Step title="Font Family">
+    ```typescript
+    font.setFamily('Arial');
+    // or
+    font.set({ family: 'Helvetica' });
+    ```
+  </Step>
+
+  <Step title="Font Size">
+    ```typescript
+    font.setSize(32);
+    // or
+    font.set({ size: 32 });
+    ```
+  </Step>
+
+  <Step title="Font Weight">
+    ```typescript
+    font.setWeight('bold');
+    // Options: 'normal', 'bold', '100'-'900'
+    ```
+  </Step>
+
+  <Step title="Font Style">
+    ```typescript
+    font.setStyle('italic');
+    // Options: 'normal', 'italic', 'oblique'
+    ```
+  </Step>
+
+  <Step title="Text Alignment">
+    ```typescript
+    font.setAlign('center');
+    // Options: 'left', 'center', 'right', 'start', 'end'
+    ```
+  </Step>
+
+  <Step title="Text Baseline">
+    ```typescript
+    font.setBaseline('middle');
+    // Options: 'top', 'middle', 'bottom', 'alphabetic', etc.
+    ```
+  </Step>
+</Steps>
+
+### Reading Font Properties
+
+```typescript
+const currentFamily = font.family;   // 'Arial'
+const currentSize = font.size;       // 24
+const currentWeight = font.weight;   // 'bold'
+const currentAlign = font.align;     // 'center'
+```
+
+### Dynamic Font Changes
+
+```typescript
+const font = new CanvasContextFont(ctx);
+
+// Draw header
+font.set({ size: 48, weight: 'bold', align: 'center' });
+ctx.fillText('Welcome!', 400, 100);
+
+// Draw body text
+font.set({ size: 18, weight: 'normal', align: 'left' });
+ctx.fillText('This is the body text', 50, 200);
+
+// Draw footer
+font.set({ size: 12, style: 'italic', align: 'right' });
+ctx.fillText('Footer information', 750, 550);
+```
+
+## Practical Examples
+
+### User Welcome Card
+
+```typescript
+import { createCanvas, loadImage } from '@napi-rs/canvas';
+import { CanvasContextFont, setGradientStops, blur } from '@magicyan/canvas';
+import { AttachmentBuilder } from 'discord.js';
+
+async function createWelcomeCard(user: User, guild: Guild) {
+  const canvas = createCanvas(700, 250);
+  const ctx = canvas.getContext('2d');
+
+  // Background gradient
+  const gradient = ctx.createLinearGradient(0, 0, 700, 250);
+  setGradientStops(gradient, {
+    0: '#5865F2',
+    1: '#7289DA',
+  });
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, 700, 250);
+
+  // Load and draw avatar
+  const avatar = await loadImage(user.displayAvatarURL({ extension: 'png', size: 256 }));
+  
+  // Draw avatar with circular mask
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(125, 125, 75, 0, Math.PI * 2);
+  ctx.closePath();
+  ctx.clip();
+  ctx.drawImage(avatar, 50, 50, 150, 150);
+  ctx.restore();
+
+  // Setup font
+  const font = new CanvasContextFont(ctx, {
+    family: 'Arial',
+    size: 40,
+    weight: 'bold',
+    align: 'left',
+  });
+
+  // Draw welcome text
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillText('Welcome!', 225, 90);
+
+  // Draw username
+  font.set({ size: 30, weight: 'normal' });
+  ctx.fillText(user.tag, 225, 140);
+
+  // Draw member count
+  font.set({ size: 20 });
+  ctx.fillText(`Member #${guild.memberCount}`, 225, 180);
+
+  return new AttachmentBuilder(canvas.toBuffer('image/png'), {
+    name: 'welcome.png',
+  });
+}
+
+// Usage
+client.on('guildMemberAdd', async (member) => {
+  const welcomeCard = await createWelcomeCard(member.user, member.guild);
+  
+  const channel = member.guild.systemChannel;
+  if (channel) {
+    await channel.send({
+      content: `Welcome ${member}!`,
+      files: [welcomeCard],
+    });
+  }
+});
+```
+
+### Rank Card with Filters
+
+```typescript
+import { createCanvas, loadImage } from '@napi-rs/canvas';
+import { CanvasContextFont, blur, brightness } from '@magicyan/canvas';
+
+async function createRankCard(user: User, level: number, xp: number, requiredXp: number) {
+  const canvas = createCanvas(800, 200);
+  const ctx = canvas.getContext('2d');
+
+  // Background with blur effect
+  ctx.fillStyle = '#2C2F33';
+  ctx.fillRect(0, 0, 800, 200);
+
+  // Load and draw blurred background
+  const bg = await loadImage('background.png');
+  ctx.filter = blur(10);
+  ctx.drawImage(bg, 0, 0, 800, 200);
+  ctx.filter = 'none';
+
+  // Semi-transparent overlay
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+  ctx.fillRect(0, 0, 800, 200);
+
+  // Avatar
+  const avatar = await loadImage(user.displayAvatarURL({ extension: 'png' }));
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(100, 100, 60, 0, Math.PI * 2);
+  ctx.closePath();
+  ctx.clip();
+  ctx.drawImage(avatar, 40, 40, 120, 120);
+  ctx.restore();
+
+  // Text
+  const font = new CanvasContextFont(ctx, {
+    family: 'Arial',
+    size: 32,
+    weight: 'bold',
+  });
+
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillText(user.username, 180, 60);
+
+  font.set({ size: 24, weight: 'normal' });
+  ctx.fillText(`Level ${level}`, 180, 100);
+
+  // Progress bar
+  const barWidth = 500;
+  const barHeight = 30;
+  const barX = 180;
+  const barY = 130;
+  const progress = (xp / requiredXp) * barWidth;
+
+  // Bar background
+  ctx.fillStyle = '#4E5058';
+  ctx.fillRect(barX, barY, barWidth, barHeight);
+
+  // Bar fill
+  ctx.fillStyle = '#5865F2';
+  ctx.fillRect(barX, barY, progress, barHeight);
+
+  // XP text
+  font.set({ size: 18 });
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillText(`${xp} / ${requiredXp} XP`, barX + barWidth / 2, barY + barHeight / 2 + 6);
+
+  return new AttachmentBuilder(canvas.toBuffer('image/png'), {
+    name: 'rank.png',
+  });
+}
+```
+
+### Image Filter Gallery
+
+```typescript
+import { createCanvas, loadImage } from '@napi-rs/canvas';
+import { blur, grayscale, sepia, invert, brightness } from '@magicyan/canvas';
+
+async function createFilterGallery(imageUrl: string) {
+  const image = await loadImage(imageUrl);
+  const width = 300;
+  const height = 300;
+  const canvas = createCanvas(width * 3, height * 2);
+  const ctx = canvas.getContext('2d');
+
+  const filters = [
+    { name: 'Original', filter: 'none' },
+    { name: 'Blur', filter: blur(5) },
+    { name: 'Grayscale', filter: grayscale(100) },
+    { name: 'Sepia', filter: sepia(100) },
+    { name: 'Invert', filter: invert(100) },
+    { name: 'Bright', filter: brightness(150) },
+  ];
+
+  filters.forEach((filterData, index) => {
+    const x = (index % 3) * width;
+    const y = Math.floor(index / 3) * height;
+
+    ctx.filter = filterData.filter;
+    ctx.drawImage(image, x, y, width, height);
+    ctx.filter = 'none';
+
+    // Label
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    ctx.fillRect(x, y + height - 30, width, 30);
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = '20px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(filterData.name, x + width / 2, y + height - 8);
+  });
+
+  return new AttachmentBuilder(canvas.toBuffer('image/png'), {
+    name: 'filters.png',
+  });
+}
+```
+
+## Performance Tips
+
+<CardGroup cols={2}>
+  <Card title="Cache Images" icon="database">
+    Load and cache frequently used images to avoid repeated network requests.
+  </Card>
+  <Card title="Optimize Canvas Size" icon="compress">
+    Use the smallest canvas size that meets your needs to reduce memory usage.
+  </Card>
+  <Card title="Reset Context State" icon="rotate-right">
+    Always reset filters and transformations after use with `ctx.filter = 'none'` and `ctx.resetTransform()`.
+  </Card>
+  <Card title="Use PNG for Quality" icon="image">
+    Use PNG format for best quality, or JPEG for smaller file sizes.
+  </Card>
+</CardGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Discord Bot Setup" icon="robot" href="/guides/discord-bot-setup">
+    Learn how to send canvas images in Discord
+  </Card>
+  <Card title="API Reference" icon="code" href="/api/canvas/filters">
+    View all canvas utilities
+  </Card>
+</CardGroup>

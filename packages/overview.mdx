@@ -1,0 +1,157 @@
+---
+title: Packages Overview
+description: Explore the complete collection of Magicyan packages for Discord.js bot development
+icon: boxes-stacked
+---
+
+Magicyan is a comprehensive SDK library consisting of multiple TypeScript utility packages designed to streamline Discord.js bot development. Each package focuses on a specific aspect of bot development, providing type-safe, well-tested utilities.
+
+## Available Packages
+
+<CardGroup cols={2}>
+  <Card
+    title="@magicyan/core"
+    icon="brackets-curly"
+    href="/packages/core"
+  >
+    Lightweight utility functions for common tasks - string manipulation, validation, formatting, and more.
+  </Card>
+  
+  <Card
+    title="@magicyan/discord"
+    icon="discord"
+    href="/packages/discord"
+  >
+    Core Discord.js utilities for channels, commands, members, roles, embeds, and components.
+  </Card>
+  
+  <Card
+    title="@magicyan/discord-events"
+    icon="bolt"
+    href="/packages/discord-events"
+  >
+    Extended Discord.js events for enhanced bot functionality and better event handling.
+  </Card>
+  
+  <Card
+    title="@magicyan/discord-ui"
+    icon="window"
+    href="/packages/discord-ui"
+  >
+    Interactive UI components including pagination, multi-menus, and confirmation prompts.
+  </Card>
+  
+  <Card
+    title="@magicyan/canvas"
+    icon="paintbrush"
+    href="/packages/canvas"
+  >
+    Canvas utilities for image manipulation, gradients, filters, and custom fonts.
+  </Card>
+  
+  <Card
+    title="@magicyan/minecraft"
+    icon="cube"
+    href="/packages/minecraft"
+  >
+    Typed functions to fetch data from various Minecraft APIs (Mojang, servers, skins).
+  </Card>
+</CardGroup>
+
+## Package Comparison
+
+| Package | Version | Purpose | Dependencies |
+|---------|---------|---------|-------------|
+| **core** | 1.2.1 | General utilities | None |
+| **discord** | 1.7.2 | Discord.js helpers | discord.js, @magicyan/core |
+| **discord-events** | 1.2.1 | Extended events | discord.js |
+| **discord-ui** | 0.2.0 | UI components | None |
+| **canvas** | 1.0.0 | Canvas utilities | @napi-rs/canvas |
+| **minecraft** | 0.0.4 | Minecraft APIs | lodash |
+
+## When to Use Each Package
+
+### Start with @magicyan/core
+If you need general-purpose utilities that work in any TypeScript project:
+- String manipulation and formatting
+- Data validation
+- Date/time utilities
+- Math helpers
+
+### Use @magicyan/discord for Discord Bots
+When building Discord bots and need:
+- Channel and member utilities
+- Command helpers
+- Embed builders
+- Component creators
+- Role management
+
+### Add @magicyan/discord-events for Advanced Events
+When you need events beyond standard Discord.js:
+- Member timeout events
+- Voice state changes (connect/disconnect/move)
+- Extended role events
+- Webhook message detection
+- User kick/ban events
+
+### Use @magicyan/discord-ui for Interactive Components
+When building interactive bot features:
+- Paginated embeds
+- Multi-page menus
+- Confirmation dialogs
+- Custom button layouts
+
+### Use @magicyan/canvas for Image Generation
+When creating custom images:
+- Welcome cards
+- User profiles
+- Server banners
+- Custom graphics with gradients and filters
+
+### Use @magicyan/minecraft for Minecraft Integration
+When integrating Minecraft features:
+- Player profile lookups
+- Server status checks
+- Skin rendering
+- Mojang API integration
+
+## Installation
+
+All packages are published on npm under the `@magicyan` scope. Install only what you need:
+
+<CodeGroup>
+```bash npm
+npm install @magicyan/core
+npm install @magicyan/discord
+npm install @magicyan/discord-events
+npm install @magicyan/discord-ui
+npm install @magicyan/canvas
+npm install @magicyan/minecraft
+```
+
+```bash pnpm
+pnpm add @magicyan/core
+pnpm add @magicyan/discord
+pnpm add @magicyan/discord-events
+pnpm add @magicyan/discord-ui
+pnpm add @magicyan/canvas
+pnpm add @magicyan/minecraft
+```
+
+```bash yarn
+yarn add @magicyan/core
+yarn add @magicyan/discord
+yarn add @magicyan/discord-events
+yarn add @magicyan/discord-ui
+yarn add @magicyan/canvas
+yarn add @magicyan/minecraft
+```
+</CodeGroup>
+
+## TypeScript Support
+
+All packages are written in TypeScript and include full type definitions. They support both ESM and CommonJS module formats.
+
+<Note>
+  Each package is independently versioned and can be used standalone or combined with other Magicyan packages.
+</Note>

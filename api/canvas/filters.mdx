@@ -1,0 +1,309 @@
+---
+title: "Filters"
+description: "Canvas filter functions for visual effects"
+---
+
+<Note>
+  The `@magicyan/canvas` package requires `@napi-rs/canvas` as a peer dependency. Install it with:
+  ```bash
+  npm install @napi-rs/canvas
+  ```
+</Note>
+
+## Overview
+
+The Filter module provides CSS-like filter functions for canvas contexts. All functions return filter strings that can be applied to canvas elements.
+
+## Functions
+
+### blur
+
+Applies a Gaussian blur effect to the canvas.
+
+```typescript
+function blur(amount: number): string
+```
+
+<ParamField path="amount" type="number" required>
+  The blur radius in pixels
+</ParamField>
+
+**Returns:** A CSS filter string
+
+```typescript
+import { createCanvas } from '@napi-rs/canvas';
+import { blur } from '@magicyan/canvas';
+
+const canvas = createCanvas(800, 600);
+const ctx = canvas.getContext('2d');
+
+ctx.filter = blur(5);
+ctx.fillRect(0, 0, 800, 600);
+```
+
+---
+
+### opacity
+
+Adjusts the opacity/transparency of the canvas content.
+
+```typescript
+function opacity(percentage: number): string
+```
+
+<ParamField path="percentage" type="number" required>
+  The opacity percentage (0-100)
+</ParamField>
+
+**Returns:** A CSS filter string
+
+```typescript
+import { createCanvas } from '@napi-rs/canvas';
+import { opacity } from '@magicyan/canvas';
+
+const canvas = createCanvas(800, 600);
+const ctx = canvas.getContext('2d');
+
+ctx.filter = opacity(50); // 50% transparent
+ctx.fillRect(0, 0, 800, 600);
+```
+
+---
+
+### hueRotate
+
+Rotates the hue of colors in the canvas.
+
+```typescript
+function hueRotate(deg: number): string
+```
+
+<ParamField path="deg" type="number" required>
+  The rotation angle in degrees (0-360)
+</ParamField>
+
+**Returns:** A CSS filter string
+
+```typescript
+import { createCanvas } from '@napi-rs/canvas';
+import { hueRotate } from '@magicyan/canvas';
+
+const canvas = createCanvas(800, 600);
+const ctx = canvas.getContext('2d');
+
+ctx.filter = hueRotate(90); // Rotate hue by 90 degrees
+ctx.fillStyle = 'red';
+ctx.fillRect(0, 0, 800, 600);
+```
+
+---
+
+### sepia
+
+Applies a sepia tone effect to the canvas.
+
+```typescript
+function sepia(percentage: number): string
+```
+
+<ParamField path="percentage" type="number" required>
+  The intensity of the sepia effect (0-100)
+</ParamField>
+
+**Returns:** A CSS filter string
+
+```typescript
+import { createCanvas } from '@napi-rs/canvas';
+import { sepia } from '@magicyan/canvas';
+
+const canvas = createCanvas(800, 600);
+const ctx = canvas.getContext('2d');
+
+ctx.filter = sepia(100); // Full sepia effect
+ctx.fillRect(0, 0, 800, 600);
+```
+
+---
+
+### brightness
+
+Adjusts the brightness of the canvas content.
+
+```typescript
+function brightness(percentage: number): string
+```
+
+<ParamField path="percentage" type="number" required>
+  The brightness level as a percentage (0 = black, 100 = normal, 200+ = brighter)
+</ParamField>
+
+**Returns:** A CSS filter string
+
+```typescript
+import { createCanvas } from '@napi-rs/canvas';
+import { brightness } from '@magicyan/canvas';
+
+const canvas = createCanvas(800, 600);
+const ctx = canvas.getContext('2d');
+
+ctx.filter = brightness(150); // 50% brighter
+ctx.fillRect(0, 0, 800, 600);
+```
+
+---
+
+### contrast
+
+Adjusts the contrast of the canvas content.
+
+```typescript
+function contrast(percentage: number): string
+```
+
+<ParamField path="percentage" type="number" required>
+  The contrast level as a percentage (0 = gray, 100 = normal, 200+ = higher contrast)
+</ParamField>
+
+**Returns:** A CSS filter string
+
+```typescript
+import { createCanvas } from '@napi-rs/canvas';
+import { contrast } from '@magicyan/canvas';
+
+const canvas = createCanvas(800, 600);
+const ctx = canvas.getContext('2d');
+
+ctx.filter = contrast(200); // Double contrast
+ctx.fillRect(0, 0, 800, 600);
+```
+
+---
+
+### invert
+
+Inverts the colors of the canvas content.
+
+```typescript
+function invert(percentage: number): string
+```
+
+<ParamField path="percentage" type="number" required>
+  The amount of inversion (0 = normal, 100 = fully inverted)
+</ParamField>
+
+**Returns:** A CSS filter string
+
+```typescript
+import { createCanvas } from '@napi-rs/canvas';
+import { invert } from '@magicyan/canvas';
+
+const canvas = createCanvas(800, 600);
+const ctx = canvas.getContext('2d');
+
+ctx.filter = invert(100); // Full color inversion
+ctx.fillStyle = 'white';
+ctx.fillRect(0, 0, 800, 600); // Will appear black
+```
+
+---
+
+### grayscale
+
+Converts the canvas content to grayscale.
+
+```typescript
+function grayscale(percentage: number): string
+```
+
+<ParamField path="percentage" type="number" required>
+  The amount of grayscale conversion (0 = color, 100 = full grayscale)
+</ParamField>
+
+**Returns:** A CSS filter string
+
+```typescript
+import { createCanvas } from '@napi-rs/canvas';
+import { grayscale } from '@magicyan/canvas';
+
+const canvas = createCanvas(800, 600);
+const ctx = canvas.getContext('2d');
+
+ctx.filter = grayscale(100); // Full grayscale
+ctx.fillStyle = 'red';
+ctx.fillRect(0, 0, 800, 600); // Will appear gray
+```
+
+---
+
+### dropShadow
+
+Adds a drop shadow effect to canvas elements.
+
+```typescript
+function dropShadow(
+  x: number,
+  y: number,
+  blur: number,
+  color?: string | CssColors
+): string
+```
+
+<ParamField path="x" type="number" required>
+  The horizontal offset of the shadow in pixels
+</ParamField>
+
+<ParamField path="y" type="number" required>
+  The vertical offset of the shadow in pixels
+</ParamField>
+
+<ParamField path="blur" type="number" required>
+  The blur radius of the shadow in pixels
+</ParamField>
+
+<ParamField path="color" type="string | CssColors" default="'black'">
+  The color of the shadow (CSS color string or named color)
+</ParamField>
+
+**Returns:** A CSS filter string
+
+```typescript
+import { createCanvas } from '@napi-rs/canvas';
+import { dropShadow } from '@magicyan/canvas';
+
+const canvas = createCanvas(800, 600);
+const ctx = canvas.getContext('2d');
+
+// Add a drop shadow with custom color
+ctx.filter = dropShadow(5, 5, 10, 'rgba(0, 0, 0, 0.5)');
+ctx.fillStyle = 'white';
+ctx.fillRect(100, 100, 200, 200);
+```
+
+---
+
+## Combining Filters
+
+You can combine multiple filters by joining them with spaces:
+
+```typescript
+import { createCanvas } from '@napi-rs/canvas';
+import { blur, brightness, contrast } from '@magicyan/canvas';
+
+const canvas = createCanvas(800, 600);
+const ctx = canvas.getContext('2d');
+
+// Combine multiple filters
+ctx.filter = [blur(2), brightness(120), contrast(110)].join(' ');
+ctx.fillRect(0, 0, 800, 600);
+```
+
+## Filter Object
+
+All filter functions are also available as methods on the `Filter` object:
+
+```typescript
+import { Filter } from '@magicyan/canvas';
+
+const blurFilter = Filter.blur(5);
+const opacityFilter = Filter.opacity(50);
+```

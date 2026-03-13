@@ -1,0 +1,317 @@
+---
+title: Select Menus
+description: Select menu helper functions for Discord.js
+---
+
+Helper functions for working with Discord select menu components.
+
+## Overview
+
+Magicyan provides utilities for working with all Discord select menu types:
+
+- **StringSelectMenu** - User selects from custom string options
+- **UserSelectMenu** - User selects Discord users
+- **RoleSelectMenu** - User selects Discord roles
+- **ChannelSelectMenu** - User selects Discord channels
+- **MentionableSelectMenu** - User selects mentionable entities (users/roles)
+
+## createRow
+
+Select menus are automatically wrapped in action rows when using the `createRow` function.
+
+```typescript
+function createRow<Component extends AnyComponentBuilder>(
+  ...components: (Component | Component[])[]
+): ActionRowBuilder<Component>
+```
+
+See the [Row](/api/discord/components/buttons) documentation for detailed information.
+
+### Example with Select Menus
+
+<CodeGroup>
+```typescript String Select Menu
+import { createRow } from "@magicyan/discord";
+import { StringSelectMenuBuilder } from "discord.js";
+
+const menu = new StringSelectMenuBuilder({
+  customId: "color_select",
+  placeholder: "Choose your favorite color",
+  options: [
+    {
+      label: "Red",
+      value: "red",
+      emoji: "🔴",
+      description: "The color of passion"
+    },
+    {
+      label: "Blue",
+      value: "blue",
+      emoji: "🔵",
+      description: "The color of calm"
+    },
+    {
+      label: "Green",
+      value: "green",
+      emoji: "🟢",
+      description: "The color of nature"
+    }
+  ]
+});
+
+const row = createRow(menu);
+
+await interaction.reply({
+  content: "Pick a color:",
+  components: [row]
+});
+```
+
+```typescript User Select Menu
+import { createRow } from "@magicyan/discord";
+import { UserSelectMenuBuilder } from "discord.js";
+
+const menu = new UserSelectMenuBuilder({
+  customId: "user_select",
+  placeholder: "Select users to mention",
+  minValues: 1,
+  maxValues: 5
+});
+
+const row = createRow(menu);
+
+await interaction.reply({
+  content: "Choose users:",
+  components: [row]
+});
+```
+
+```typescript Role Select Menu
+import { createRow } from "@magicyan/discord";
+import { RoleSelectMenuBuilder } from "discord.js";
+
+const menu = new RoleSelectMenuBuilder({
+  customId: "role_select",
+  placeholder: "Select roles to assign",
+  minValues: 1,
+  maxValues: 3
+});
+
+const row = createRow(menu);
+
+await interaction.reply({
+  content: "Pick roles:",
+  components: [row],
+  ephemeral: true
+});
+```
+
+```typescript Channel Select Menu
+import { createRow } from "@magicyan/discord";
+import { ChannelSelectMenuBuilder, ChannelType } from "discord.js";
+
+const menu = new ChannelSelectMenuBuilder({
+  customId: "channel_select",
+  placeholder: "Select a text channel",
+  channelTypes: [ChannelType.GuildText]
+});
+
+const row = createRow(menu);
+
+await interaction.reply({
+  content: "Choose a channel:",
+  components: [row]
+});
+```
+
+```typescript Mentionable Select Menu
+import { createRow } from "@magicyan/discord";
+import { MentionableSelectMenuBuilder } from "discord.js";
+
+const menu = new MentionableSelectMenuBuilder({
+  customId: "mention_select",
+  placeholder: "Select users or roles",
+  minValues: 1,
+  maxValues: 10
+});
+
+const row = createRow(menu);
+
+await interaction.reply({
+  content: "Choose who to notify:",
+  components: [row]
+});
+```
+</CodeGroup>
+
+---
+
+## createComponents
+
+The `createComponents` function automatically wraps select menus in action rows.
+
+```typescript
+function createComponents(
+  ...data: (ComponentData | ComponentData[])[]
+): (ContainerComponentBuilder | ContainerBuilder)[]
+```
+
+### Example
+
+```typescript
+import { createComponents } from "@magicyan/discord";
+import { StringSelectMenuBuilder, ButtonBuilder, ButtonStyle } from "discord.js";
+
+const menu = new StringSelectMenuBuilder({
+  customId: "category_select",
+  placeholder: "Select a category",
+  options: [
+    { label: "General", value: "general" },
+    { label: "Support", value: "support" },
+    { label: "Feedback", value: "feedback" }
+  ]
+});
+
+const button = new ButtonBuilder({
+  customId: "cancel",
+  label: "Cancel",
+  style: ButtonStyle.Danger
+});
+
+// Select menu and button are automatically wrapped in separate rows
+const components = createComponents(menu, button);
+
+await interaction.reply({
+  content: "Choose an option:",
+  components
+});
+```
+
+<Note>
+  Select menus must be the only component in their action row. The `createComponents` function handles this automatically.
+</Note>
+
+---
+
+## Type Guards
+
+Magicyan provides type guard utilities for checking select menu types:
+
+### isAnySelectMenuBuilder
+
+Checks if a value is any type of select menu builder.
+
+```typescript
+function isAnySelectMenuBuilder(value: unknown): value is AnySelectMenuBuilder
+```
+
+### Specific Type Guards
+
+```typescript
+function isStringSelectMenuBuilder(value: unknown): value is StringSelectMenuBuilder
+function isUserSelectMenuBuilder(value: unknown): value is UserSelectMenuBuilder
+function isRoleSelectMenuBuilder(value: unknown): value is RoleSelectMenuBuilder
+function isChannelSelectMenuBuilder(value: unknown): value is ChannelSelectMenuBuilder
+function isMentionableSelectMenuBuilder(value: unknown): value is MentionableSelectMenuBuilder
+```
+
+### Example
+
+```typescript
+import { 
+  isStringSelectMenuBuilder,
+  isUserSelectMenuBuilder 
+} from "@magicyan/discord";
+import { StringSelectMenuBuilder } from "discord.js";
+
+const menu = new StringSelectMenuBuilder({
+  customId: "test",
+  options: [{ label: "Test", value: "test" }]
+});
+
+if (isStringSelectMenuBuilder(menu)) {
+  console.log("This is a string select menu");
+  // TypeScript knows menu is StringSelectMenuBuilder
+  const options = menu.options;
+}
+
+if (isUserSelectMenuBuilder(menu)) {
+  console.log("This is a user select menu");
+  // This won't execute
+}
+```
+
+---
+
+## Handling Select Menu Interactions
+
+While not specific to Magicyan, here's how to handle select menu submissions:
+
+<CodeGroup>
+```typescript String Select
+client.on("interactionCreate", async (interaction) => {
+  if (!interaction.isStringSelectMenu()) return;
+  if (interaction.customId !== "color_select") return;
+
+  const selected = interaction.values; // string[]
+  
+  await interaction.reply({
+    content: `You selected: ${selected.join(", ")}`,
+    ephemeral: true
+  });
+});
+```
+
+```typescript User Select
+client.on("interactionCreate", async (interaction) => {
+  if (!interaction.isUserSelectMenu()) return;
+  if (interaction.customId !== "user_select") return;
+
+  const users = interaction.users; // Collection<string, User>
+  const userList = users.map(u => u.tag).join(", ");
+  
+  await interaction.reply({
+    content: `Selected users: ${userList}`,
+    ephemeral: true
+  });
+});
+```
+
+```typescript Role Select
+client.on("interactionCreate", async (interaction) => {
+  if (!interaction.isRoleSelectMenu()) return;
+  if (interaction.customId !== "role_select") return;
+
+  const roles = interaction.roles; // Collection<string, Role>
+  const roleList = roles.map(r => r.name).join(", ");
+  
+  await interaction.reply({
+    content: `Selected roles: ${roleList}`,
+    ephemeral: true
+  });
+});
+```
+
+```typescript Channel Select
+client.on("interactionCreate", async (interaction) => {
+  if (!interaction.isChannelSelectMenu()) return;
+  if (interaction.customId !== "channel_select") return;
+
+  const channels = interaction.channels; // Collection<string, Channel>
+  const channelList = channels.map(c => c.name).join(", ");
+  
+  await interaction.reply({
+    content: `Selected channels: ${channelList}`,
+    ephemeral: true
+  });
+});
+```
+</CodeGroup>
+
+<Tip>
+  Use `minValues` and `maxValues` properties to control how many options users can select. Set both to 1 for single-selection menus.
+</Tip>
+
+<Warning>
+  Select menu `customId` must be unique across your bot. Consider using prefixes like `settings:language_select` to organize your interactions.
+</Warning>

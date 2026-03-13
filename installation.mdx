@@ -1,0 +1,296 @@
+---
+title: "Installation"
+description: "Install Magicyan packages and set up your Discord bot project"
+---
+
+## Prerequisites
+
+Before installing Magicyan, ensure you have the following:
+
+<Steps>
+  <Step title="Node.js 18 or higher">
+    Magicyan requires Node.js version 18 or higher. Check your version:
+    
+    ```bash
+    node --version
+    ```
+    
+    If you need to upgrade, download the latest version from [nodejs.org](https://nodejs.org/)
+  </Step>
+  
+  <Step title="Package Manager">
+    You'll need one of the following package managers:
+    - **npm** (comes with Node.js)
+    - **yarn** (install with `npm install -g yarn`)
+    - **pnpm** (install with `npm install -g pnpm`)
+  </Step>
+  
+  <Step title="Discord.js (for Discord packages)">
+    If you plan to use Discord-related packages, you need Discord.js v14.25.1 or higher:
+    
+    <CodeGroup>
+    ```bash npm
+    npm install discord.js
+    ```
+    
+    ```bash yarn
+    yarn add discord.js
+    ```
+    
+    ```bash pnpm
+    pnpm add discord.js
+    ```
+    </CodeGroup>
+  </Step>
+</Steps>
+
+## Package Installation
+
+Magicyan is split into multiple packages. Install only the packages you need for your project.
+
+### Core Utilities
+
+The `@magicyan/core` package provides essential utilities for string manipulation, validation, date handling, and more.
+
+<CodeGroup>
+```bash npm
+npm install @magicyan/core
+```
+
+```bash yarn
+yarn add @magicyan/core
+```
+
+```bash pnpm
+pnpm add @magicyan/core
+```
+</CodeGroup>
+
+<Note>
+  `@magicyan/core` has **no dependencies** and can be used in any TypeScript/JavaScript project, not just Discord bots.
+</Note>
+
+### Discord Utilities
+
+The `@magicyan/discord` package provides Discord.js helpers, component builders, embed utilities, and more.
+
+<CodeGroup>
+```bash npm
+npm install @magicyan/discord
+```
+
+```bash yarn
+yarn add @magicyan/discord
+```
+
+```bash pnpm
+pnpm add @magicyan/discord
+```
+</CodeGroup>
+
+**Peer Dependencies:**
+- `discord.js` ^14.25.1 (must be installed separately)
+- `@magicyan/core` (installed automatically as a dependency)
+
+<Warning>
+  Make sure you have Discord.js v14.25.1 or higher installed before using `@magicyan/discord`.
+</Warning>
+
+### Discord Events
+
+Extended event system for Discord.js with custom events.
+
+<CodeGroup>
+```bash npm
+npm install @magicyan/discord-events
+```
+
+```bash yarn
+yarn add @magicyan/discord-events
+```
+
+```bash pnpm
+pnpm add @magicyan/discord-events
+```
+</CodeGroup>
+
+**Peer Dependencies:**
+- `discord.js` ^14.19.2
+
+### Discord UI Components
+
+Type-safe UI component builders for complex Discord interfaces.
+
+<CodeGroup>
+```bash npm
+npm install @magicyan/discord-ui
+```
+
+```bash yarn
+yarn add @magicyan/discord-ui
+```
+
+```bash pnpm
+pnpm add @magicyan/discord-ui
+```
+</CodeGroup>
+
+### Canvas Utilities
+
+Canvas manipulation utilities for creating images with filters and gradients.
+
+<CodeGroup>
+```bash npm
+npm install @magicyan/canvas
+```
+
+```bash yarn
+yarn add @magicyan/canvas
+```
+
+```bash pnpm
+pnpm add @magicyan/canvas
+```
+</CodeGroup>
+
+**Peer Dependencies:**
+- `@napi-rs/canvas` ^0.1.78 (must be installed separately)
+
+<Info>
+  The canvas package requires `@napi-rs/canvas` for rendering. Install it with:  
+  `npm install @napi-rs/canvas`
+</Info>
+
+### Minecraft API
+
+Typed Minecraft API integration for server and player data.
+
+<CodeGroup>
+```bash npm
+npm install @magicyan/minecraft
+```
+
+```bash yarn
+yarn add @magicyan/minecraft
+```
+
+```bash pnpm
+pnpm add @magicyan/minecraft
+```
+</CodeGroup>
+
+## Complete Installation Example
+
+For a full Discord bot project with all commonly-used packages:
+
+<CodeGroup>
+```bash npm
+npm install discord.js @magicyan/core @magicyan/discord @magicyan/discord-events
+```
+
+```bash yarn
+yarn add discord.js @magicyan/core @magicyan/discord @magicyan/discord-events
+```
+
+```bash pnpm
+pnpm add discord.js @magicyan/core @magicyan/discord @magicyan/discord-events
+```
+</CodeGroup>
+
+## TypeScript Configuration
+
+Magicyan is built with TypeScript and requires TypeScript 5.0 or higher for the best experience.
+
+### Install TypeScript
+
+<CodeGroup>
+```bash npm
+npm install --save-dev typescript
+```
+
+```bash yarn
+yarn add --dev typescript
+```
+
+```bash pnpm
+pnpm add -D typescript
+```
+</CodeGroup>
+
+### Recommended tsconfig.json
+
+Create or update your `tsconfig.json` with these recommended settings:
+
+```json tsconfig.json
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "lib": ["ES2022"],
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}
+```
+
+## Verify Installation
+
+Create a test file to verify your installation:
+
+```typescript test.ts
+import { capitalize, sleep } from "@magicyan/core";
+import { createEmbed, createRow } from "@magicyan/discord";
+
+console.log(capitalize("hello world", true)); // "Hello World"
+
+await sleep.seconds(1);
+console.log("Installation successful!");
+```
+
+Run the test:
+
+```bash
+npx tsx test.ts
+```
+
+<Tip>
+  Install `tsx` for running TypeScript files directly: `npm install -D tsx`
+</Tip>
+
+## Package Versions
+
+Current stable versions:
+
+| Package | Version | Status |
+|---------|---------|--------|
+| `@magicyan/core` | 1.2.1 | Stable |
+| `@magicyan/discord` | 1.7.2 | Stable |
+| `@magicyan/discord-events` | 1.2.1 | Stable |
+| `@magicyan/discord-ui` | 0.2.0 | Beta |
+| `@magicyan/canvas` | 1.0.0 | Stable |
+| `@magicyan/minecraft` | Latest | Stable |
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Quickstart Guide" icon="rocket" href="/quickstart">
+    Build your first Discord bot with Magicyan
+  </Card>
+  <Card title="Core Package" icon="gear" href="/packages/core">
+    Learn about core utilities and functions
+  </Card>
+  <Card title="Discord Package" icon="discord" href="/packages/discord">
+    Explore Discord.js helpers and utilities
+  </Card>
+  <Card title="API Reference" icon="code" href="/api/core/check">
+    Browse the complete API documentation
+  </Card>
+</CardGroup>

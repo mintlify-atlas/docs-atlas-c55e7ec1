@@ -1,0 +1,209 @@
+---
+title: "Date Functions"
+description: "Enhanced date manipulation utilities with DatePlus"
+---
+
+## createDate
+
+Helper function to create a `DatePlus` instance with extended date manipulation methods.
+
+```typescript
+function createDate(date?: string | number | Date): DatePlus
+```
+
+<ParamField path="date" type="string | number | Date">
+  Optional initial date (`string`, `number`, or `Date`). Defaults to current date/time.
+</ParamField>
+
+**Returns:** `DatePlus` - A new `DatePlus` instance with extended methods.
+
+### Examples
+
+```typescript
+import { createDate } from "@magicyan/core";
+
+const d = createDate("2025-01-01");
+
+const now = createDate(); // current date/time
+```
+
+---
+
+## DatePlus
+
+An extended Date object with additional manipulation methods. All methods support method chaining.
+
+### add
+
+Adds a value to a specific unit of the date.
+
+```typescript
+add(unit: DateUnit, value: number): this
+```
+
+<ParamField path="unit" type="DateUnit" required>
+  Time unit to add to: `"days"`, `"hours"`, `"minutes"`, `"seconds"`, `"milliseconds"`, `"months"`, or `"years"`.
+</ParamField>
+
+<ParamField path="value" type="number" required>
+  Amount to add (can be negative or fractional, e.g., 1.5 days).
+</ParamField>
+
+**Returns:** The same `DatePlus` instance (supports method chaining).
+
+#### Examples
+
+```typescript
+import { createDate } from "@magicyan/core";
+
+const d = createDate("2025-01-01");
+d.add("days", 5); // adds 5 days
+d.add("hours", 12); // adds 12 hours
+```
+
+---
+
+### sub
+
+Subtracts a value from a specific unit of the date.
+
+```typescript
+sub(unit: DateUnit, value: number): this
+```
+
+<ParamField path="unit" type="DateUnit" required>
+  Time unit to subtract from: `"days"`, `"hours"`, `"minutes"`, `"seconds"`, `"milliseconds"`, `"months"`, or `"years"`.
+</ParamField>
+
+<ParamField path="value" type="number" required>
+  Amount to subtract.
+</ParamField>
+
+**Returns:** The same `DatePlus` instance (supports method chaining).
+
+#### Examples
+
+```typescript
+import { createDate } from "@magicyan/core";
+
+const d = createDate("2025-01-10");
+d.sub("days", 3); // subtracts 3 days
+d.sub("hours", 5); // subtracts 5 hours
+```
+
+---
+
+### set
+
+Sets a specific unit of the date to an absolute value.
+
+```typescript
+set(unit: DateUnit, value: number): this
+```
+
+<ParamField path="unit" type="DateUnit" required>
+  Time unit to set: `"days"`, `"hours"`, `"minutes"`, `"seconds"`, `"milliseconds"`, `"months"`, or `"years"`.
+</ParamField>
+
+<ParamField path="value" type="number" required>
+  New value for the specified unit.
+</ParamField>
+
+**Returns:** The same `DatePlus` instance (supports method chaining).
+
+#### Examples
+
+```typescript
+import { createDate } from "@magicyan/core";
+
+const d = createDate("2025-01-01");
+d.set("hours", 15); // sets the hour to 15
+d.set("days", 10); // sets the day of the month to 10
+```
+
+---
+
+### clone
+
+Creates a clone of the current `DatePlus` instance.
+
+```typescript
+clone(): DatePlus
+```
+
+**Returns:** `DatePlus` - A new `DatePlus` instance with the same date/time.
+
+#### Examples
+
+```typescript
+import { createDate } from "@magicyan/core";
+
+const d1 = createDate("2025-01-01");
+const d2 = d1.clone();
+d2.add("days", 5); // d1 remains unchanged
+```
+
+---
+
+### diff
+
+Calculates the difference between this date and another date.
+
+```typescript
+diff(other: Date | DatePlus, unit?: DateUnit): number
+```
+
+<ParamField path="other" type="Date | DatePlus" required>
+  The other `Date` or `DatePlus` instance to compare against.
+</ParamField>
+
+<ParamField path="unit" type="DateUnit" default="milliseconds">
+  Unit to return the difference in: `"days"`, `"hours"`, `"minutes"`, `"seconds"`, `"milliseconds"`, `"months"`, or `"years"`.
+</ParamField>
+
+**Returns:** `number` - The difference between the two dates in the specified unit.
+
+#### Examples
+
+```typescript
+import { createDate } from "@magicyan/core";
+
+const d1 = createDate("2025-01-01");
+const d2 = createDate("2025-01-10");
+
+console.log(d2.diff(d1, "days")); // 9
+console.log(d2.diff(d1, "milliseconds")); // 777600000
+```
+
+---
+
+## DateUnit
+
+Type definition for date units used in DatePlus methods.
+
+```typescript
+type DateUnit =
+  | "days"
+  | "hours"
+  | "minutes"
+  | "seconds"
+  | "milliseconds"
+  | "months"
+  | "years";
+```
+
+---
+
+## Chaining Example
+
+```typescript
+import { createDate } from "@magicyan/core";
+
+const date = createDate("2025-01-01")
+  .add("days", 5)
+  .add("hours", 12)
+  .set("minutes", 30);
+
+console.log(date.toISOString());
+// 2025-01-06T12:30:00.000Z
+```

@@ -1,0 +1,93 @@
+---
+title: Webhooks
+description: Utility functions for creating Discord webhook clients
+icon: webhook
+---
+
+## createWebhookClient
+
+Create a Discord webhook client from a URL or webhook data with error handling.
+
+```typescript
+function createWebhookClient(url: string, options?: WebhookClientOptions): WebhookClient | null
+function createWebhookClient(data: WebhookClientData, options?: WebhookClientOptions): WebhookClient | null
+```
+
+### Parameters
+
+<ParamField path="url" type="string">
+  The webhook URL (format: `https://discord.com/api/webhooks/ID/TOKEN`)
+</ParamField>
+
+<ParamField path="data" type="WebhookClientData">
+  Alternative to URL: An object containing webhook `id` and `token`
+</ParamField>
+
+<ParamField path="options" type="WebhookClientOptions">
+  Optional Discord.js webhook client options
+</ParamField>
+
+### Returns
+
+<ResponseField name="return" type="WebhookClient | null">
+  A Discord.js WebhookClient instance, or `null` if creation fails (invalid URL or data)
+</ResponseField>
+
+### Example
+
+```typescript
+import { createWebhookClient } from "@magicyan/discord";
+
+// Create webhook client from URL
+const webhookUrl = "https://discord.com/api/webhooks/1234567890/abcdef...";
+const webhook = createWebhookClient(webhookUrl);
+
+if (webhook) {
+  await webhook.send({
+    content: "Hello from webhook!",
+    username: "Custom Bot Name",
+    avatarURL: "https://example.com/avatar.png"
+  });
+}
+
+// Create webhook client from data object
+const webhookData = {
+  id: "1234567890",
+  token: "abcdefghijklmnop..."
+};
+const webhook2 = createWebhookClient(webhookData);
+
+// With options
+const webhook3 = createWebhookClient(webhookUrl, {
+  allowedMentions: { parse: [] }
+});
+
+// Safe error handling
+const userProvidedUrl = "invalid-url";
+const webhook4 = createWebhookClient(userProvidedUrl);
+if (!webhook4) {
+  console.error("Failed to create webhook client");
+} else {
+  await webhook4.send("Message sent successfully!");
+}
+
+// Sending embeds through webhook
+const logWebhook = createWebhookClient(process.env.LOG_WEBHOOK_URL!);
+if (logWebhook) {
+  await logWebhook.send({
+    embeds: [{
+      title: "Error Log",
+      description: "An error occurred",
+      color: 0xff0000,
+      timestamp: new Date().toISOString()
+    }]
+  });
+}
+```
+
+<Note>
+  - This function wraps Discord.js's `WebhookClient` constructor with error handling
+  - Returns `null` instead of throwing an error when provided invalid data
+  - Useful for safely handling user-provided webhook URLs without try-catch blocks
+  - Supports both webhook URL strings and data objects with `id` and `token`
+</Note>

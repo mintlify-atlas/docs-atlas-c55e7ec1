@@ -1,0 +1,83 @@
+---
+title: Emojis
+description: Utility functions for finding Discord guild emojis
+icon: smile
+---
+
+## findEmoji
+
+Find guild emojis by name, ID, or custom filters with support for animated emojis.
+
+```typescript
+function findEmoji(guildOrClient: Guild | Client)
+```
+
+### Parameters
+
+<ParamField path="guildOrClient" type="Guild | Client" required>
+  The Discord guild or client instance to search emojis from
+</ParamField>
+
+### Returns
+
+<ResponseField name="return" type="object">
+  An object with methods to find emojis:
+  
+  <ResponseField name="byName" type="(name: string, animated?: boolean, and?: FindEmojiFilter) => GuildEmoji | undefined">
+    Find an emoji by its name with optional animated filter and additional filter
+  </ResponseField>
+  
+  <ResponseField name="byId" type="(id: string, animated?: boolean) => GuildEmoji | undefined">
+    Find an emoji by its ID with optional animated filter
+  </ResponseField>
+  
+  <ResponseField name="byFilter" type="(filter: FindEmojiFilter) => GuildEmoji | undefined">
+    Find an emoji using a custom filter function
+  </ResponseField>
+</ResponseField>
+
+### Example
+
+```typescript
+import { findEmoji } from "@magicyan/discord";
+
+// Find emoji by name
+const waveEmoji = findEmoji(guild).byName("wave");
+
+// Find animated emoji by name
+const animatedWave = findEmoji(guild).byName("wave", true);
+
+// Find emoji by ID
+const customEmoji = findEmoji(guild).byId("1234567890");
+
+// Find animated emoji by ID
+const animatedById = findEmoji(guild).byId("9876543210", true);
+
+// Find emoji with additional filter
+const managedEmoji = findEmoji(guild).byName(
+  "partner",
+  false,
+  (emoji) => emoji.managed
+);
+
+// Find emoji with custom filter
+const popularEmoji = findEmoji(guild).byFilter(
+  (emoji) => emoji.available && !emoji.animated
+);
+
+// Search client-wide emojis (all guilds)
+const globalEmoji = findEmoji(client).byName("celebration");
+
+// Use emoji in messages
+const emoji = findEmoji(guild).byName("thumbsup");
+if (emoji) {
+  await message.react(emoji);
+  await channel.send(`Nice work! ${emoji}`);
+}
+```
+
+<Note>
+  - When searching by name, the `animated` parameter filters for animated/non-animated emojis
+  - The `FindEmojiFilter` type is `(emoji: GuildEmoji) => boolean`
+  - When using a `Client` instance, the search includes all emojis from all guilds the bot is in
+</Note>

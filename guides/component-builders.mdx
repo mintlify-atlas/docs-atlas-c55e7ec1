@@ -1,0 +1,450 @@
+---
+title: 'Component Builders'
+description: 'Build interactive Discord UI components with ease using Magicyan utilities'
+icon: 'cube'
+---
+
+# Component Builders
+
+Magicyan provides powerful utilities for building Discord UI components like buttons, modals, select menus, and embeds. These utilities simplify component creation with intuitive APIs.
+
+## Buttons
+
+### Creating Link Buttons
+
+The `createLinkButton` function makes it easy to create link buttons:
+
+```typescript
+import { createLinkButton } from '@magicyan/discord';
+
+// Simple link button
+const button1 = createLinkButton('https://example.com', 'Visit Website');
+
+// With emoji
+const button2 = createLinkButton(
+  'https://github.com',
+  'GitHub',
+  '🔗'
+);
+
+// Using data object
+const button3 = createLinkButton({
+  url: 'https://discord.gg/invite',
+  label: 'Join Server',
+  emoji: '👋',
+});
+```
+
+### Wrapping Buttons into Rows
+
+The `wrapButtons` function automatically organizes buttons into action rows:
+
+```typescript
+import { wrapButtons, createLinkButton } from '@magicyan/discord';
+import { ButtonBuilder, ButtonStyle } from 'discord.js';
+
+const button1 = new ButtonBuilder({
+  customId: 'accept',
+  label: 'Accept',
+  style: ButtonStyle.Success,
+});
+
+const button2 = new ButtonBuilder({
+  customId: 'decline',
+  label: 'Decline',
+  style: ButtonStyle.Danger,
+});
+
+const button3 = createLinkButton('https://help.example.com', 'Help');
+
+// Wrap buttons with max 2 per row
+const rows = wrapButtons(2, button1, button2, button3);
+// Results in: [[button1, button2], [button3]]
+
+await interaction.reply({
+  content: 'Please choose an option:',
+  components: rows,
+});
+```
+
+<Tip>
+  `wrapButtons` is perfect for dynamic button lists where you don't know the count ahead of time.
+</Tip>
+
+## Action Rows
+
+### Creating Component Rows
+
+The `createRow` function creates action rows with any components:
+
+```typescript
+import { createRow } from '@magicyan/discord';
+import { ButtonBuilder, ButtonStyle, StringSelectMenuBuilder } from 'discord.js';
+
+// Button row
+const buttonRow = createRow(
+  new ButtonBuilder({
+    customId: 'primary',
+    label: 'Primary',
+    style: ButtonStyle.Primary,
+  }),
+  new ButtonBuilder({
+    customId: 'secondary',
+    label: 'Secondary',
+    style: ButtonStyle.Secondary,
+  })
+);
+
+// Select menu row
+const menuRow = createRow(
+  new StringSelectMenuBuilder({
+    customId: 'select',
+    placeholder: 'Choose an option',
+    options: [
+      { label: 'Option 1', value: '1' },
+      { label: 'Option 2', value: '2' },
+      { label: 'Option 3', value: '3' },
+    ],
+  })
+);
+
+await interaction.reply({
+  content: 'Interactive message',
+  components: [buttonRow, menuRow],
+});
+```
+
+### Conditional Components
+
+`createRow` filters out null, undefined, and boolean values:
+
+```typescript
+const hasPermission = member.permissions.has('Administrator');
+
+const row = createRow(
+  new ButtonBuilder({
+    customId: 'view',
+    label: 'View',
+    style: ButtonStyle.Primary,
+  }),
+  // Admin-only button
+  hasPermission && new ButtonBuilder({
+    customId: 'delete',
+    label: 'Delete',
+    style: ButtonStyle.Danger,
+  }),
+  // Another conditional
+  user.premium ? new ButtonBuilder({
+    customId: 'premium',
+    label: 'Premium Feature',
+    style: ButtonStyle.Success,
+  }) : null
+);
+```
+
+## Modals
+
+### Creating Modals
+
+Use `createModal` to build modal forms:
+
+```typescript
+import { createModal } from '@magicyan/discord';
+import { TextInputBuilder, TextInputStyle } from 'discord.js';
+
+// Simple modal
+const modal = createModal('feedback-modal', 'Feedback Form',
+  new TextInputBuilder({
+    customId: 'title',
+    label: 'Title',
+    style: TextInputStyle.Short,
+    required: true,
+  }),
+  new TextInputBuilder({
+    customId: 'content',
+    label: 'Your Feedback',
+    style: TextInputStyle.Paragraph,
+    required: true,
+    maxLength: 1000,
+  })
+);
+
+await interaction.showModal(modal);
+```
+
+### Processing Modal Submissions
+
+Convert modal fields to a record object:
+
+```typescript
+import { modalFieldsToRecord } from '@magicyan/discord';
+
+client.on('interactionCreate', async (interaction) => {
+  if (!interaction.isModalSubmit()) return;
+  if (interaction.customId !== 'feedback-modal') return;
+
+  // Convert to simple object
+  const fields = modalFieldsToRecord(interaction.fields);
+  
+  console.log(fields.title);   // string
+  console.log(fields.content); // string
+
+  await interaction.reply({
+    content: `Thank you for your feedback: **${fields.title}**`,
+    ephemeral: true,
+  });
+});
+```
+
+### Parsing Modal Data
+
+Transform modal fields with a custom parser:
+
+```typescript
+const data = modalFieldsToRecord(interaction.fields, (fields) => ({
+  title: fields.title.trim(),
+  content: fields.content.trim(),
+  timestamp: new Date(),
+  userId: interaction.user.id,
+}));
+
+console.log(data.title);     // string
+console.log(data.timestamp); // Date
+```
+
+## Embeds
+
+### Creating Embeds
+
+The `createEmbed` function provides enhanced embed building:
+
+```typescript
+import { createEmbed } from '@magicyan/discord';
+
+const embed = createEmbed({
+  title: 'Welcome!',
+  description: ['Welcome to our server!', 'Enjoy your stay.'],
+  color: '#5865F2',
+  thumbnail: 'https://example.com/logo.png',
+  timestamp: true,
+  footer: 'Bot Footer',
+  fields: [
+    { name: 'Field 1', value: 'Value 1' },
+    { name: 'Field 2', value: 'Value 2', inline: true },
+  ],
+});
+
+await interaction.reply({ embeds: [embed] });
+```
+
+<Note>
+  The `description` property accepts both strings and arrays. Arrays are automatically joined with line breaks.
+</Note>
+
+### EmbedPlus Features
+
+<Steps>
+  <Step title="Auto-Timestamp">
+    Use `timestamp: true` to add the current timestamp:
+
+    ```typescript
+    const embed = createEmbed({
+      title: 'Event Log',
+      description: 'Something happened',
+      timestamp: true, // Uses current time
+    });
+    ```
+  </Step>
+
+  <Step title="Simple Footer">
+    Pass a string directly as the footer:
+
+    ```typescript
+    const embed = createEmbed({
+      title: 'Info',
+      footer: 'Powered by Magicyan',
+    });
+    ```
+  </Step>
+
+  <Step title="Multi-line Description">
+    Build descriptions from arrays:
+
+    ```typescript
+    const embed = createEmbed({
+      title: 'Rules',
+      description: [
+        '1. Be respectful',
+        '2. No spam',
+        '3. Have fun!',
+      ],
+    });
+    ```
+  </Step>
+
+  <Step title="Extending Embeds">
+    Extend existing embeds with new data:
+
+    ```typescript
+    const baseEmbed = createEmbed({
+      color: '#5865F2',
+      footer: 'My Bot',
+    });
+
+    const specificEmbed = createEmbed({
+      extends: baseEmbed,
+      title: 'Specific Page',
+      description: 'This inherits the base color and footer',
+    });
+    ```
+  </Step>
+</Steps>
+
+### Dynamic Embeds
+
+Update embeds dynamically:
+
+```typescript
+const embed = createEmbed({
+  title: 'Loading...',
+  description: 'Please wait',
+  color: 'Yellow',
+});
+
+await interaction.reply({ embeds: [embed] });
+
+// Later, update the embed
+embed.update({
+  title: 'Complete!',
+  description: 'Task finished successfully',
+  color: 'Green',
+  timestamp: true,
+});
+
+await interaction.editReply({ embeds: [embed] });
+```
+
+### Embed Assets
+
+Set thumbnails and images easily:
+
+```typescript
+const embed = createEmbed({ title: 'User Profile' });
+
+// Set thumbnail
+embed.setAsset('thumbnail', user.displayAvatarURL());
+
+// Set image
+embed.setAsset('image', 'https://example.com/banner.png');
+
+// Update specific image URLs
+embed.setElementImageURL('author', user.avatarURL());
+embed.setElementImageURL('footer', guild.iconURL());
+```
+
+## Complete Example
+
+Here's a full example combining multiple components:
+
+```typescript
+import { createEmbed, createRow, wrapButtons, createModal, modalFieldsToRecord } from '@magicyan/discord';
+import { ButtonBuilder, ButtonStyle, TextInputBuilder, TextInputStyle } from 'discord.js';
+
+// Command: /profile
+client.on('interactionCreate', async (interaction) => {
+  if (!interaction.isChatInputCommand()) return;
+  if (interaction.commandName !== 'profile') return;
+
+  const embed = createEmbed({
+    title: `${interaction.user.tag}'s Profile`,
+    description: 'View and manage your profile',
+    color: 'Blue',
+    thumbnail: interaction.user.displayAvatarURL(),
+    fields: [
+      { name: 'User ID', value: interaction.user.id },
+      { name: 'Joined', value: `<t:${Math.floor(interaction.user.createdTimestamp / 1000)}:R>` },
+    ],
+    footer: 'Profile System',
+    timestamp: true,
+  });
+
+  const buttons = createRow(
+    new ButtonBuilder({
+      customId: 'edit-profile',
+      label: 'Edit Profile',
+      style: ButtonStyle.Primary,
+      emoji: '✏️',
+    }),
+    new ButtonBuilder({
+      customId: 'view-stats',
+      label: 'View Stats',
+      style: ButtonStyle.Secondary,
+      emoji: '📊',
+    })
+  );
+
+  await interaction.reply({
+    embeds: [embed],
+    components: [buttons],
+  });
+});
+
+// Handle edit button
+client.on('interactionCreate', async (interaction) => {
+  if (!interaction.isButton()) return;
+  if (interaction.customId !== 'edit-profile') return;
+
+  const modal = createModal('edit-profile-modal', 'Edit Profile',
+    new TextInputBuilder({
+      customId: 'bio',
+      label: 'Bio',
+      style: TextInputStyle.Paragraph,
+      placeholder: 'Tell us about yourself...',
+      maxLength: 500,
+    })
+  );
+
+  await interaction.showModal(modal);
+});
+
+// Handle modal submission
+client.on('interactionCreate', async (interaction) => {
+  if (!interaction.isModalSubmit()) return;
+  if (interaction.customId !== 'edit-profile-modal') return;
+
+  const { bio } = modalFieldsToRecord(interaction.fields);
+
+  await interaction.reply({
+    content: '✅ Profile updated successfully!',
+    ephemeral: true,
+  });
+});
+```
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Use Type Safety" icon="shield">
+    Import types from Discord.js for better autocomplete and error checking.
+  </Card>
+  <Card title="Handle Errors" icon="triangle-exclamation">
+    Always wrap async operations in try-catch blocks.
+  </Card>
+  <Card title="Validate Input" icon="check">
+    Validate modal submissions before processing.
+  </Card>
+  <Card title="Reuse Components" icon="recycle">
+    Create reusable component factories for common patterns.
+  </Card>
+</CardGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Canvas Operations" icon="palette" href="/guides/canvas-operations">
+    Create images with canvas
+  </Card>
+  <Card title="API Reference" icon="code" href="/api/discord/commands">
+    View all component functions
+  </Card>
+</CardGroup>

@@ -1,0 +1,270 @@
+---
+title: "Timer Functions"
+description: "Interval, timeout, and sleep utilities for asynchronous timing control"
+---
+
+## createInterval
+
+Creates a customizable interval that executes a callback function at regular intervals.
+
+```typescript
+function createInterval(options: CreateIntervalOptions): {
+  timer: NodeJS.Timeout;
+  stop: () => void;
+}
+```
+
+<ParamField path="options" type="CreateIntervalOptions" required>
+  Configuration object for the interval.
+</ParamField>
+
+<ParamField path="options.time" type="number" required>
+  The interval duration in milliseconds.
+</ParamField>
+
+<ParamField path="options.run" type="(stop: () => void) => void" required>
+  The callback function to execute at each interval. Receives a `stop` function to clear the interval.
+</ParamField>
+
+<ParamField path="options.immediately" type="boolean">
+  Whether to run the callback immediately before starting the interval.
+</ParamField>
+
+**Returns:** Object with `timer` (NodeJS.Timeout) and `stop` function to clear the interval.
+
+### Example
+
+```typescript
+import { createInterval } from "@magicyan/core";
+
+const { stop } = createInterval({
+  time: 1000,
+  immediately: true,
+  run(stop) {
+    console.log("Running every second");
+    // Call stop() to clear the interval
+  }
+});
+
+// Stop the interval after 5 seconds
+setTimeout(stop, 5000);
+```
+
+---
+
+## createTimeout
+
+Creates a timeout that executes a callback function after a specified delay.
+
+```typescript
+function createTimeout(options: CreateTimeoutOptions): {
+  timer: NodeJS.Timeout;
+  stop: () => void;
+}
+```
+
+<ParamField path="options" type="CreateTimeoutOptions" required>
+  Configuration object for the timeout.
+</ParamField>
+
+<ParamField path="options.delay" type="number" required>
+  The delay in milliseconds before executing the callback.
+</ParamField>
+
+<ParamField path="options.run" type="() => void" required>
+  The callback function to execute after the delay.
+</ParamField>
+
+**Returns:** Object with `timer` (NodeJS.Timeout) and `stop` function to clear the timeout.
+
+### Example
+
+```typescript
+import { createTimeout } from "@magicyan/core";
+
+const { stop } = createTimeout({
+  delay: 3000,
+  run() {
+    console.log("Executed after 3 seconds");
+  }
+});
+
+// Cancel the timeout if needed
+// stop();
+```
+
+---
+
+## createLoopInterval
+
+Creates an interval that loops through an array, executing a callback for each element.
+
+```typescript
+function createLoopInterval<T>(options: CreateLoopIntervalOptions<T>): {
+  timer: NodeJS.Timeout;
+  stop: () => void;
+}
+```
+
+<ParamField path="options" type="CreateLoopIntervalOptions<T>" required>
+  Configuration object for the loop interval.
+</ParamField>
+
+<ParamField path="options.array" type="T[]" required>
+  The array to loop through.
+</ParamField>
+
+<ParamField path="options.time" type="number" required>
+  The interval duration in milliseconds between each element.
+</ParamField>
+
+<ParamField path="options.run" type="(value: T, stop: () => void, lap: number, array: T[]) => void" required>
+  The callback function executed for each element. Receives the current value, stop function, lap number, and the full array.
+</ParamField>
+
+<ParamField path="options.immediately" type="boolean">
+  Whether to run the first iteration immediately.
+</ParamField>
+
+**Returns:** Object with `timer` (NodeJS.Timeout) and `stop` function to clear the interval.
+
+### Example
+
+```typescript
+import { createLoopInterval } from "@magicyan/core";
+
+const colors = ["red", "green", "blue"];
+
+const { stop } = createLoopInterval({
+  array: colors,
+  time: 1000,
+  immediately: true,
+  run(color, stop, lap, array) {
+    console.log(`Lap ${lap}: ${color}`);
+    // Loops back to the start after reaching the end
+  }
+});
+```
+
+<Note>
+  When the loop reaches the end of the array, it automatically starts over from the beginning and increments the lap counter.
+</Note>
+
+---
+
+## sleep
+
+Asynchronous sleep function that pauses execution for a specified duration.
+
+```typescript
+function sleep<V>(time: number, value?: V): Promise<ResolveSleepValue<V>>
+```
+
+<ParamField path="time" type="number" required>
+  The sleep duration in milliseconds.
+</ParamField>
+
+<ParamField path="value" type="V">
+  Optional value to return after sleep. Can be a function that will be executed after the sleep.
+</ParamField>
+
+**Returns:** `Promise` that resolves after the specified time with the provided value (or function result).
+
+### Examples
+
+```typescript
+import { sleep } from "@magicyan/core";
+
+// Simple sleep
+await sleep(1000);
+console.log("Executed after 1 second");
+
+// Sleep with return value
+const result = await sleep(1000, "Hello");
+console.log(result); // "Hello"
+
+// Sleep with function
+const computed = await sleep(1000, () => 42);
+console.log(computed); // 42
+```
+
+---
+
+## sleep.seconds
+
+Sleep for a specified number of seconds.
+
+```typescript
+sleep.seconds<V>(time: number, value?: V): Promise<ResolveSleepValue<V>>
+```
+
+<ParamField path="time" type="number" required>
+  The sleep duration in seconds.
+</ParamField>
+
+<ParamField path="value" type="V">
+  Optional value to return after sleep.
+</ParamField>
+
+### Example
+
+```typescript
+import { sleep } from "@magicyan/core";
+
+await sleep.seconds(5);
+console.log("Executed after 5 seconds");
+```
+
+---
+
+## sleep.minutes
+
+Sleep for a specified number of minutes.
+
+```typescript
+sleep.minutes<V>(time: number, value?: V): Promise<ResolveSleepValue<V>>
+```
+
+<ParamField path="time" type="number" required>
+  The sleep duration in minutes.
+</ParamField>
+
+<ParamField path="value" type="V">
+  Optional value to return after sleep.
+</ParamField>
+
+### Example
+
+```typescript
+import { sleep } from "@magicyan/core";
+
+await sleep.minutes(2);
+console.log("Executed after 2 minutes");
+```
+
+---
+
+## sleep.hours
+
+Sleep for a specified number of hours.
+
+```typescript
+sleep.hours<V>(time: number, value?: V): Promise<ResolveSleepValue<V>>
+```
+
+<ParamField path="time" type="number" required>
+  The sleep duration in hours.
+</ParamField>
+
+<ParamField path="value" type="V">
+  Optional value to return after sleep.
+</ParamField>
+
+### Example
+
+```typescript
+import { sleep } from "@magicyan/core";
+
+await sleep.hours(1);
+console.log("Executed after 1 hour");
+```

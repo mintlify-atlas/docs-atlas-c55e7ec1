@@ -1,0 +1,72 @@
+---
+title: "Check Functions"
+description: "Case-insensitive string comparison utilities"
+---
+
+## equalsIgnoreCase
+
+Compares two strings for equality, ignoring case sensitivity.
+
+```typescript
+function equalsIgnoreCase(text1: string, text2: string): boolean
+```
+
+<ParamField path="text1" type="string" required>
+  The first string to compare.
+</ParamField>
+
+<ParamField path="text2" type="string" required>
+  The second string to compare.
+</ParamField>
+
+**Returns:** `boolean` - `true` if the strings are equal when compared in lowercase, otherwise `false`.
+
+### Examples
+
+```typescript
+import { equalsIgnoreCase } from "@magicyan/core";
+
+equalsIgnoreCase("Hello", "hello");
+// Returns: true
+
+equalsIgnoreCase("World", "WORLD");
+// Returns: true
+
+equalsIgnoreCase("Test", "Toast");
+// Returns: false
+```
+
+---
+
+## includesIgnoreCase
+
+Checks if a string contains a given query, ignoring case sensitivity.
+
+```typescript
+function includesIgnoreCase(text: string, query: string): boolean
+```
+
+<ParamField path="text" type="string" required>
+  The string to search within.
+</ParamField>
+
+<ParamField path="query" type="string" required>
+  The substring to search for.
+</ParamField>
+
+**Returns:** `boolean` - `true` if `query` is found within `text` when both are compared in lowercase, otherwise `false`.
+
+### Examples
+
+```typescript
+import { includesIgnoreCase } from "@magicyan/core";
+
+includesIgnoreCase("Hello World", "world");
+// Returns: true
+
+includesIgnoreCase("Programming", "GRAM");
+// Returns: true
+
+includesIgnoreCase("TypeScript", "Java");
+// Returns: false
+```

@@ -1,0 +1,379 @@
+---
+title: Server
+description: Functions for fetching Minecraft server data and status information
+icon: server
+---
+
+The server module provides functions to fetch Minecraft server status, check availability, and retrieve server icons.
+
+## fetchServerStatus
+
+Fetches comprehensive status information about a Minecraft server.
+
+```typescript
+import { fetchServerStatus } from "@magicyan/minecraft";
+
+const status = await fetchServerStatus("play.hypixel.net");
+if (status.online) {
+  console.log(`Server has ${status.players.online}/${status.players.max} players`);
+  console.log(`MOTD: ${status.motd.clean.join(" ")}`);
+}
+```
+
+### Parameters
+
+<ParamField path="ip" type="string" required>
+  The server IP address or hostname (e.g., "play.hypixel.net" or "mc.example.com:25565")
+</ParamField>
+
+<ParamField path="bedrock" type="boolean" default="false">
+  Set to `true` to query a Bedrock Edition server instead of Java Edition
+</ParamField>
+
+### Response
+
+Returns a `Promise<ServerInfo>` which is either `OnlineServerInfo` or `OfflineServerInfo`.
+
+#### OnlineServerInfo
+
+<ResponseField name="online" type="true" required>
+  Indicates the server is online
+</ResponseField>
+
+<ResponseField name="ip" type="string" required>
+  The server's IP address
+</ResponseField>
+
+<ResponseField name="port" type="number" required>
+  The server's port number
+</ResponseField>
+
+<ResponseField name="hostname" type="string">
+  The server's hostname if available
+</ResponseField>
+
+<ResponseField name="version" type="string" required>
+  The Minecraft version the server is running
+</ResponseField>
+
+<ResponseField name="protocol" type="object">
+  <Expandable title="protocol">
+    <ResponseField name="version" type="number">
+      Protocol version number
+    </ResponseField>
+    <ResponseField name="name" type="string">
+      Protocol version name
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="icon" type="string">
+  Base64-encoded server icon data
+</ResponseField>
+
+<ResponseField name="software" type="string">
+  Server software (e.g., "Paper", "Spigot", "Vanilla")
+</ResponseField>
+
+<ResponseField name="motd" type="object" required>
+  <Expandable title="motd">
+    <ResponseField name="raw" type="string[]">
+      Raw MOTD lines with formatting codes
+    </ResponseField>
+    <ResponseField name="clean" type="string[]">
+      Clean MOTD lines without formatting
+    </ResponseField>
+    <ResponseField name="html" type="string[]">
+      MOTD lines formatted as HTML
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="players" type="object" required>
+  <Expandable title="players">
+    <ResponseField name="online" type="number">
+      Number of players currently online
+    </ResponseField>
+    <ResponseField name="max" type="number">
+      Maximum player capacity
+    </ResponseField>
+    <ResponseField name="list" type="array">
+      Array of online players (if available)
+      <Expandable title="player">
+        <ResponseField name="name" type="string">
+          Player's username
+        </ResponseField>
+        <ResponseField name="uuid" type="string">
+          Player's UUID
+        </ResponseField>
+      </Expandable>
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="plugins" type="array">
+  Array of installed plugins
+  <Expandable title="plugin">
+    <ResponseField name="name" type="string">
+      Plugin name
+    </ResponseField>
+    <ResponseField name="version" type="string">
+      Plugin version
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="mods" type="array">
+  Array of installed mods
+  <Expandable title="mod">
+    <ResponseField name="name" type="string">
+      Mod name
+    </ResponseField>
+    <ResponseField name="version" type="string">
+      Mod version
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="map" type="object">
+  <Expandable title="map">
+    <ResponseField name="raw" type="string">
+      Raw map name
+    </ResponseField>
+    <ResponseField name="clean" type="string">
+      Clean map name
+    </ResponseField>
+    <ResponseField name="html" type="string">
+      HTML-formatted map name
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="gamemode" type="string">
+  Current game mode
+</ResponseField>
+
+<ResponseField name="serverid" type="string">
+  Unique server identifier
+</ResponseField>
+
+<ResponseField name="eula_blocked" type="boolean">
+  Whether the server is blocked due to EULA
+</ResponseField>
+
+<ResponseField name="debug" type="ServerDebugInfo" required>
+  <Expandable title="debug">
+    <ResponseField name="ping" type="boolean">
+      Whether ping query succeeded
+    </ResponseField>
+    <ResponseField name="query" type="boolean">
+      Whether full query succeeded
+    </ResponseField>
+    <ResponseField name="bedrock" type="boolean">
+      Whether this is a Bedrock server
+    </ResponseField>
+    <ResponseField name="srv" type="boolean">
+      Whether SRV record was found
+    </ResponseField>
+    <ResponseField name="cachehit" type="boolean">
+      Whether response was cached
+    </ResponseField>
+    <ResponseField name="cachetime" type="number">
+      Cache timestamp
+    </ResponseField>
+    <ResponseField name="cacheexpire" type="number">
+      Cache expiration time
+    </ResponseField>
+    <ResponseField name="apiversion" type="number">
+      API version used
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+#### OfflineServerInfo
+
+<ResponseField name="online" type="false" required>
+  Indicates the server is offline
+</ResponseField>
+
+<ResponseField name="ip" type="string" required>
+  The server's IP address
+</ResponseField>
+
+<ResponseField name="port" type="number" required>
+  The server's port number
+</ResponseField>
+
+<ResponseField name="hostname" type="string">
+  The server's hostname if available
+</ResponseField>
+
+<ResponseField name="debug" type="object" required>
+  <Expandable title="debug">
+    Contains all `ServerDebugInfo` fields plus:
+    <ResponseField name="error" type="object">
+      <Expandable title="error">
+        <ResponseField name="ping" type="string">
+          Ping error message
+        </ResponseField>
+        <ResponseField name="query" type="string">
+          Query error message
+        </ResponseField>
+      </Expandable>
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Example Response
+
+```json
+{
+  "online": true,
+  "ip": "172.65.203.35",
+  "port": 25565,
+  "hostname": "play.hypixel.net",
+  "version": "1.8.x-1.20.x",
+  "protocol": {
+    "version": 47,
+    "name": "1.8.x"
+  },
+  "motd": {
+    "raw": ["§aHypixel Network §c[1.8-1.20]"],
+    "clean": ["Hypixel Network [1.8-1.20]"],
+    "html": ["<span style='color: #55FF55;'>Hypixel Network </span><span style='color: #FF5555;'>[1.8-1.20]</span>"]
+  },
+  "players": {
+    "online": 45230,
+    "max": 200000
+  },
+  "debug": {
+    "ping": true,
+    "query": false,
+    "srv": true,
+    "cachehit": true,
+    "cachetime": 1710353210,
+    "cacheexpire": 1710353270,
+    "apiversion": 3
+  }
+}
+```
+
+<Note>
+  This function uses the mcsrvstat.us API, which caches server status for ~60 seconds. The cache information is available in the `debug` field.
+</Note>
+
+---
+
+## isServerOnline
+
+Quickly checks if a Minecraft server is online without fetching full status details.
+
+```typescript
+import { isServerOnline } from "@magicyan/minecraft";
+
+const online = await isServerOnline("play.hypixel.net");
+if (online) {
+  console.log("Server is online!");
+}
+```
+
+### Parameters
+
+<ParamField path="ip" type="string" required>
+  The server IP address or hostname
+</ParamField>
+
+<ParamField path="bedrock" type="boolean" default="false">
+  Set to `true` to check a Bedrock Edition server
+</ParamField>
+
+### Response
+
+<ResponseField name="return" type="Promise<boolean>" required>
+  Returns `true` if the server is online and reachable, `false` otherwise
+</ResponseField>
+
+<Note>
+  This is a lightweight check that returns faster than `fetchServerStatus` but provides no additional information about the server.
+</Note>
+
+---
+
+## fetchServerIcon
+
+Fetches the server icon as a buffer.
+
+```typescript
+import { fetchServerIcon } from "@magicyan/minecraft";
+import { writeFile } from "fs/promises";
+
+const result = await fetchServerIcon("play.hypixel.net");
+if (result.success) {
+  await writeFile("server-icon.png", result.data.buffer);
+  console.log(`Icon saved! URL: ${result.data.url}`);
+} else {
+  console.error(`Failed: ${result.error}`);
+}
+```
+
+### Parameters
+
+<ParamField path="ip" type="string" required>
+  The server IP address or hostname
+</ParamField>
+
+### Response
+
+Returns a `Promise<FetchServerIconResult>` which is a discriminated union:
+
+#### Success Response
+
+<ResponseField name="success" type="true" required>
+  Indicates the fetch was successful
+</ResponseField>
+
+<ResponseField name="data" type="object" required>
+  <Expandable title="data">
+    <ResponseField name="buffer" type="Buffer">
+      The server icon image as a Node.js Buffer
+    </ResponseField>
+    <ResponseField name="url" type="string">
+      The full URL where the icon was fetched from
+    </ResponseField>
+    <ResponseField name="response" type="Response">
+      The raw Fetch API Response object
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+#### Error Response
+
+<ResponseField name="success" type="false" required>
+  Indicates the fetch failed
+</ResponseField>
+
+<ResponseField name="error" type="string" required>
+  Error message describing what went wrong
+</ResponseField>
+
+<ResponseField name="code" type="number" required>
+  HTTP status code (e.g., 404 if server has no icon)
+</ResponseField>
+
+### Example Usage
+
+```typescript
+const result = await fetchServerIcon("mc.hypixel.net");
+
+if (result.success) {
+  // Use the buffer
+  const base64 = result.data.buffer.toString("base64");
+  console.log(`data:image/png;base64,${base64}`);
+} else {
+  console.error(`Error ${result.code}: ${result.error}`);
+}
+```
+
+<Note>
+  Not all servers have icons. If a server doesn't have an icon, this function will return an error response with a 404 status code.
+</Note>

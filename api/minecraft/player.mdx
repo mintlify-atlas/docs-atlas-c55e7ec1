@@ -1,0 +1,268 @@
+---
+title: Player
+description: Functions for fetching Minecraft player profile data from Mojang APIs
+icon: user
+---
+
+The player module provides functions to fetch Minecraft player profiles and session information from Mojang's official APIs.
+
+## fetchMinecraftProfile
+
+Fetches basic profile information for a Minecraft player by their username.
+
+```typescript
+import { fetchMinecraftProfile } from "@magicyan/minecraft";
+
+const result = await fetchMinecraftProfile("Notch");
+if (result.success) {
+  console.log(`UUID: ${result.data.id}`);
+  console.log(`Name: ${result.data.name}`);
+} else {
+  console.error(`Error ${result.code}: ${result.error}`);
+}
+```
+
+### Parameters
+
+<ParamField path="nick" type="string" required>
+  The Minecraft username to look up (case-insensitive for lookup, but response contains case-sensitive name)
+</ParamField>
+
+### Response
+
+Returns a `Promise<FetchMinecraftProfileResult>` which is a discriminated union:
+
+#### Success Response
+
+<ResponseField name="success" type="true" required>
+  Indicates the profile was found
+</ResponseField>
+
+<ResponseField name="data" type="MinecraftProfile" required>
+  <Expandable title="data">
+    <ResponseField name="id" type="string">
+      UUID of the player (without dashes)
+    </ResponseField>
+    <ResponseField name="name" type="string">
+      The player's current username (case-sensitive)
+    </ResponseField>
+    <ResponseField name="legacy" type="boolean">
+      Present and `true` if the account has not migrated to a Mojang account
+    </ResponseField>
+    <ResponseField name="demo" type="boolean">
+      Present and `true` if the account does not own Minecraft
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+#### Error Response
+
+<ResponseField name="success" type="false" required>
+  Indicates the profile was not found or request failed
+</ResponseField>
+
+<ResponseField name="error" type="string" required>
+  Error message describing what went wrong
+</ResponseField>
+
+<ResponseField name="code" type="number" required>
+  HTTP status code (e.g., 404 if player not found, 429 if rate limited)
+</ResponseField>
+
+### Example Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "069a79f444e94726a5befca90e38aaf5",
+    "name": "Notch"
+  }
+}
+```
+
+### Example Error Response
+
+```json
+{
+  "success": false,
+  "error": "Not Found",
+  "code": 404
+}
+```
+
+<Note>
+  This function queries the official Mojang API. Rate limits apply - excessive requests may result in temporary IP bans. Consider caching results.
+</Note>
+
+---
+
+## fetchMinecraftProfileSession
+
+Fetches detailed session information for a Minecraft player including skin and cape textures.
+
+```typescript
+import { fetchMinecraftProfileSession } from "@magicyan/minecraft";
+
+// First get the UUID from profile lookup
+const profile = await fetchMinecraftProfile("Notch");
+
+if (profile.success) {
+  const session = await fetchMinecraftProfileSession(profile.data.id);
+  
+  if (session.success) {
+    const textures = session.data.properties[0].textures;
+    console.log(`Skin URL: ${textures.SKIN.url}`);
+    
+    if (textures.SKIN.metadata?.model === "slim") {
+      console.log("Using slim (Alex) model");
+    }
+    
+    if (textures.CAPE) {
+      console.log(`Cape URL: ${textures.CAPE.url}`);
+    }
+  }
+}
+```
+
+### Parameters
+
+<ParamField path="UUID" type="string" required>
+  The player's UUID (with or without dashes)
+</ParamField>
+
+### Response
+
+Returns a `Promise<FetchMinecraftProfileSessionResult>` which is a discriminated union:
+
+#### Success Response
+
+<ResponseField name="success" type="true" required>
+  Indicates the session was found
+</ResponseField>
+
+<ResponseField name="data" type="MinecraftProfileSession" required>
+  <Expandable title="data">
+    <ResponseField name="id" type="string">
+      UUID of the player
+    </ResponseField>
+    <ResponseField name="name" type="string">
+      The player's username
+    </ResponseField>
+    <ResponseField name="legacy" type="boolean">
+      Whether the account is a legacy account
+    </ResponseField>
+    <ResponseField name="properties" type="SessionProperty[]">
+      Array of session properties (typically contains one element with textures)
+      <Expandable title="property">
+        <ResponseField name="timestamp" type="number">
+          Unix timestamp when the textures were uploaded
+        </ResponseField>
+        <ResponseField name="profileId" type="string">
+          The profile UUID
+        </ResponseField>
+        <ResponseField name="profileName" type="string">
+          The profile username
+        </ResponseField>
+        <ResponseField name="textures" type="object">
+          <Expandable title="textures">
+            <ResponseField name="SKIN" type="object">
+              <Expandable title="SKIN">
+                <ResponseField name="url" type="string">
+                  URL to the player's skin texture
+                </ResponseField>
+                <ResponseField name="metadata" type="object">
+                  <Expandable title="metadata">
+                    <ResponseField name="model" type="'slim'">
+                      Present with value "slim" if using the Alex (slim) model, absent for Steve (classic) model
+                    </ResponseField>
+                  </Expandable>
+                </ResponseField>
+              </Expandable>
+            </ResponseField>
+            <ResponseField name="CAPE" type="object">
+              <Expandable title="CAPE">
+                <ResponseField name="url" type="string">
+                  URL to the player's cape texture (only present if player has a cape)
+                </ResponseField>
+              </Expandable>
+            </ResponseField>
+          </Expandable>
+        </ResponseField>
+      </Expandable>
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+#### Error Response
+
+<ResponseField name="success" type="false" required>
+  Indicates the session was not found or request failed
+</ResponseField>
+
+<ResponseField name="error" type="string" required>
+  Error message describing what went wrong
+</ResponseField>
+
+<ResponseField name="code" type="number" required>
+  HTTP status code
+</ResponseField>
+
+### Example Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "069a79f444e94726a5befca90e38aaf5",
+    "name": "Notch",
+    "properties": [
+      {
+        "timestamp": 1710350000000,
+        "profileId": "069a79f444e94726a5befca90e38aaf5",
+        "profileName": "Notch",
+        "textures": {
+          "SKIN": {
+            "url": "http://textures.minecraft.net/texture/292009a4925b58f02c77dadc3ecef07ea4c7472f64e0fdc32ce5522489362680"
+          },
+          "CAPE": {
+            "url": "http://textures.minecraft.net/texture/953cac8b779fe41383e675ee2b86071a71658f2180f56fbce8091ba29fef77"
+          }
+        }
+      }
+    ]
+  }
+}
+```
+
+### Detecting Skin Model
+
+You can determine which player model to use:
+
+```typescript
+const session = await fetchMinecraftProfileSession(uuid);
+
+if (session.success) {
+  const skin = session.data.properties[0].textures.SKIN;
+  const isSlim = skin.metadata?.model === "slim";
+  
+  console.log(isSlim ? "Using Alex (slim) model" : "Using Steve (classic) model");
+}
+```
+
+<Note>
+  The `properties` array is automatically decoded from base64 JSON. The raw API returns base64-encoded data, but this package handles the decoding for you.
+</Note>
+
+<Note>
+  This function queries the Mojang session server. Rate limits apply. The textures URLs are hosted on Mojang's CDN and can be accessed directly without authentication.
+</Note>
+
+## API Endpoints
+
+The player functions use the following Mojang API endpoints:
+
+- **Profile lookup**: `https://api.minecraftservices.com/minecraft/profile/lookup/name/{username}`
+- **Session data**: `https://sessionserver.mojang.com/session/minecraft/profile/{uuid}`
+
+These are official Mojang APIs and are subject to their rate limiting policies.

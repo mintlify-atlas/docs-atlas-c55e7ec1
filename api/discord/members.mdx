@@ -1,0 +1,96 @@
+---
+title: Members
+description: Utility functions for finding Discord guild members
+icon: users
+---
+
+## findMember
+
+Find guild members by various criteria such as username, nickname, display name, or global name.
+
+```typescript
+function findMember(guild: Guild)
+```
+
+### Parameters
+
+<ParamField path="guild" type="Guild" required>
+  The Discord guild to search members in
+</ParamField>
+
+### Returns
+
+<ResponseField name="return" type="object">
+  An object with methods to find members:
+  
+  <ResponseField name="byGlobalName" type="(globalName: string, and?: FindMemberFilter) => GuildMember | undefined">
+    Find a member by their global name with an optional additional filter
+  </ResponseField>
+  
+  <ResponseField name="byNickname" type="(nickname: string, and?: FindMemberFilter) => GuildMember | undefined">
+    Find a member by their server nickname with an optional additional filter
+  </ResponseField>
+  
+  <ResponseField name="byUsername" type="(username: string, and?: FindMemberFilter) => GuildMember | undefined">
+    Find a member by their username with an optional additional filter
+  </ResponseField>
+  
+  <ResponseField name="byDisplayName" type="(displayName: string, and?: FindMemberFilter) => GuildMember | undefined">
+    Find a member by their display name (nickname or username) with an optional additional filter
+  </ResponseField>
+  
+  <ResponseField name="byId" type="(id: string) => GuildMember | undefined">
+    Find a member by their user ID
+  </ResponseField>
+  
+  <ResponseField name="byFilter" type="(filter: FindMemberFilter) => GuildMember | undefined">
+    Find a member using a custom filter function
+  </ResponseField>
+</ResponseField>
+
+### Example
+
+```typescript
+import { findMember } from "@magicyan/discord";
+
+// Find member by username
+const member = findMember(guild).byUsername("john_doe");
+
+// Find member by nickname
+const nicknamed = findMember(guild).byNickname("Johnny");
+
+// Find member by global name
+const globalMember = findMember(guild).byGlobalName("John Doe");
+
+// Find member by display name (checks both nickname and username)
+const displayed = findMember(guild).byDisplayName("John");
+
+// Find member by ID
+const specificMember = findMember(guild).byId("1234567890");
+
+// Find with additional filter
+const adminUser = findMember(guild).byUsername(
+  "admin",
+  (member) => member.permissions.has("Administrator")
+);
+
+// Find member with custom filter
+const onlineModerator = findMember(guild).byFilter(
+  (member) =>
+    member.roles.cache.has("moderatorRoleId") &&
+    member.presence?.status === "online"
+);
+
+// Find boosting members
+const booster = findMember(guild).byFilter(
+  (member) => member.premiumSince !== null
+);
+```
+
+<Note>
+  - `byGlobalName` searches for the user's global display name
+  - `byNickname` only searches server-specific nicknames (returns undefined if member has no nickname)
+  - `byUsername` searches the user's account username
+  - `byDisplayName` searches the member's effective display name (nickname if set, otherwise username)
+  - The `FindMemberFilter` type is `(member: GuildMember) => boolean`
+</Note>

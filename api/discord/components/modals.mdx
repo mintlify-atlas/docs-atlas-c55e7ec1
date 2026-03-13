@@ -1,0 +1,296 @@
+---
+title: Modals
+description: Modal and modal field helper functions for Discord.js
+---
+
+Helper functions for creating Discord modals and processing modal submissions.
+
+## createModal
+
+Creates a modal dialog with text inputs and other components.
+
+```typescript
+function createModal(data: Partial<CreateModalOptions>): ModalBuilder
+function createModal(customId: string): ModalBuilder
+function createModal(customId: string, title: string): ModalBuilder
+function createModal(customId: string, title: string, ...components: ModalComponents[]): ModalBuilder
+```
+
+<ParamField path="customId" type="string" required>
+  Unique identifier for the modal
+</ParamField>
+
+<ParamField path="title" type="string" required>
+  Title displayed at the top of the modal
+</ParamField>
+
+<ParamField path="components" type="ModalComponents[]">
+  Array of modal components:
+  - `LabelBuilder` - Label component
+  - `TextDisplayBuilder` - Text display
+  - `string` - Automatically converted to TextDisplayBuilder
+  - `null`, `undefined`, `boolean` - Filtered out
+</ParamField>
+
+<ParamField path="data" type="CreateModalOptions">
+  Object containing modal configuration:
+  - `customId` (string): Unique identifier
+  - `title` (string): Modal title
+  - `components` (ModalComponents[]): Array of components
+</ParamField>
+
+### Returns
+
+`ModalBuilder` - A configured modal builder ready to be shown
+
+### Examples
+
+<CodeGroup>
+```typescript Simple Modal
+import { createModal } from "@magicyan/discord";
+import { LabelBuilder, ComponentType } from "discord.js";
+
+const modal = createModal(
+  "feedback_modal",
+  "Feedback Form",
+  new LabelBuilder({
+    customId: "feedback_text",
+    label: "Your Feedback",
+    type: ComponentType.TextInput,
+    style: 2, // Paragraph
+    required: true
+  })
+);
+
+await interaction.showModal(modal);
+```
+
+```typescript With Text Display
+import { createModal } from "@magicyan/discord";
+import { LabelBuilder, ComponentType } from "discord.js";
+
+const modal = createModal(
+  "report_modal",
+  "Report User",
+  "Please provide details about the issue:",
+  new LabelBuilder({
+    customId: "reason",
+    label: "Reason",
+    type: ComponentType.TextInput,
+    style: 1, // Short
+    maxLength: 100,
+    required: true
+  }),
+  new LabelBuilder({
+    customId: "details",
+    label: "Additional Details",
+    type: ComponentType.TextInput,
+    style: 2, // Paragraph
+    required: false
+  })
+);
+```
+
+```typescript Object Configuration
+import { createModal } from "@magicyan/discord";
+import { LabelBuilder, ComponentType } from "discord.js";
+
+const modal = createModal({
+  customId: "settings_modal",
+  title: "Update Settings",
+  components: [
+    "Configure your preferences:",
+    new LabelBuilder({
+      customId: "username",
+      label: "Username",
+      type: ComponentType.TextInput,
+      style: 1,
+      placeholder: "Enter username"
+    })
+  ]
+});
+```
+</CodeGroup>
+
+<Tip>
+  String components are automatically converted to `TextDisplayBuilder`, making it easy to add informational text to your modals.
+</Tip>
+
+---
+
+## modalFieldsToRecord
+
+Converts modal submission fields into a plain JavaScript object.
+
+```typescript
+function modalFieldsToRecord<T = ModalFieldsRecord>(data: ResolveModalData): T
+function modalFieldsToRecord<T = ModalFieldsRecord>(
+  data: ResolveModalData,
+  parse: (record: ModalFieldsRecord) => T
+): T
+```
+
+<ParamField path="data" type="ResolveModalData" required>
+  Modal submission data from the interaction. Supports multiple Discord.js data shapes:
+  - `{ fields: { fields: Collection<string, ModalData> } }`
+  - `{ fields: Collection<string, ModalData> }`
+  - `Collection<string, ModalData>`
+</ParamField>
+
+<ParamField path="parse" type="(record: ModalFieldsRecord) => T">
+  Optional transform function to process the resulting record
+</ParamField>
+
+### Returns
+
+`ModalFieldsRecord | T` - Object mapping `customId` to field values:
+- Text inputs → `string`
+- Select menus → `string[]`
+- File uploads → `string[]` (attachment URLs)
+
+### Examples
+
+<CodeGroup>
+```typescript Basic Usage
+import { modalFieldsToRecord } from "@magicyan/discord";
+
+client.on("interactionCreate", async (interaction) => {
+  if (!interaction.isModalSubmit()) return;
+  if (interaction.customId !== "feedback_modal") return;
+
+  const fields = modalFieldsToRecord(interaction.fields);
+  
+  console.log(fields.feedback_text); // User's feedback
+  console.log(fields.rating); // User's rating
+
+  await interaction.reply("Thank you for your feedback!");
+});
+```
+
+```typescript With Parser
+import { modalFieldsToRecord } from "@magicyan/discord";
+
+interface FeedbackData {
+  feedback: string;
+  rating: number;
+  email?: string;
+}
+
+const data = modalFieldsToRecord<FeedbackData>(
+  interaction.fields,
+  (fields) => ({
+    feedback: fields.feedback_text.trim(),
+    rating: Number.parseInt(fields.rating_value),
+    email: fields.email_input || undefined
+  })
+);
+
+console.log(data.feedback); // string
+console.log(data.rating); // number
+console.log(data.email); // string | undefined
+```
+
+```typescript File Upload Handling
+import { modalFieldsToRecord } from "@magicyan/discord";
+
+const fields = modalFieldsToRecord(interaction.fields);
+
+// File upload fields return array of attachment URLs
+const attachmentUrls = fields.file_upload as string[];
+
+for (const url of attachmentUrls) {
+  console.log(`Uploaded file: ${url}`);
+}
+```
+
+```typescript Complex Form Processing
+import { modalFieldsToRecord } from "@magicyan/discord";
+
+interface BugReport {
+  title: string;
+  description: string;
+  severity: "low" | "medium" | "high";
+  reproducible: boolean;
+}
+
+const report = modalFieldsToRecord<BugReport>(
+  interaction.fields,
+  (fields) => ({
+    title: fields.bug_title.trim(),
+    description: fields.bug_description.trim(),
+    severity: fields.severity_level as any,
+    reproducible: fields.can_reproduce === "yes"
+  })
+);
+
+await saveBugReport(report);
+```
+</CodeGroup>
+
+<Note>
+  The function automatically handles different modal submission data structures from Discord.js, so you don't need to worry about the internal shape of the data.
+</Note>
+
+<Warning>
+  Type assertions may be needed when using the parser function with strict TypeScript configurations. Always validate user input before using it in production.
+</Warning>
+
+---
+
+## createModalFields
+
+Converts modal components into a properly formatted fields array.
+
+```typescript
+function createModalFields(
+  ...components: ModalComponents[]
+): (LabelComponentData | TextDisplayComponentData)[]
+```
+
+<ParamField path="components" type="ModalComponents[]" required>
+  Array of modal components to convert:
+  - `LabelBuilder` - Converted to LabelComponentData
+  - `TextDisplayBuilder` - Converted to TextDisplayComponentData
+  - `string` - Converted to TextDisplayComponentData
+  - `null`, `undefined`, `boolean` - Filtered out
+</ParamField>
+
+### Returns
+
+`(LabelComponentData | TextDisplayComponentData)[]` - Array of formatted component data
+
+### Example
+
+```typescript
+import { createModalFields } from "@magicyan/discord";
+import { LabelBuilder, ComponentType, ModalBuilder } from "discord.js";
+
+const fields = createModalFields(
+  "Welcome to the form!",
+  new LabelBuilder({
+    customId: "name",
+    label: "Your Name",
+    type: ComponentType.TextInput,
+    style: 1
+  }),
+  false, // Filtered out
+  null,  // Filtered out
+  "Additional information:",
+  new LabelBuilder({
+    customId: "info",
+    label: "Details",
+    type: ComponentType.TextInput,
+    style: 2
+  })
+);
+
+const modal = new ModalBuilder({
+  customId: "my_modal",
+  title: "Form",
+  components: fields
+});
+```
+
+<Tip>
+  This function is used internally by `createModal` but can be useful if you're building modals manually or need more control over the field creation process.
+</Tip>

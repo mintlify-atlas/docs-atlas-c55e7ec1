@@ -1,0 +1,452 @@
+---
+title: '@magicyan/minecraft'
+description: Typed functions to fetch data from Minecraft APIs
+icon: cube
+---
+
+The `@magicyan/minecraft` package provides functions to fetch data from various Minecraft APIs with fully typed responses. Perfect for Discord bots that integrate Minecraft features like player lookups, server status, and skin rendering.
+
+## Installation
+
+<CodeGroup>
+```bash npm
+npm install @magicyan/minecraft
+```
+
+```bash pnpm
+pnpm add @magicyan/minecraft
+```
+
+```bash yarn
+yarn add @magicyan/minecraft
+```
+</CodeGroup>
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card title="Mojang API" icon="user">
+    Fetch player profiles and session information from official Mojang APIs.
+  </Card>
+  
+  <Card title="Server Status" icon="server">
+    Check Minecraft server status and player counts.
+  </Card>
+  
+  <Card title="Skin Utilities" icon="shirt">
+    Get player skins and render them as images.
+  </Card>
+  
+  <Card title="Typed Responses" icon="code">
+    Full TypeScript support with detailed response types.
+  </Card>
+</CardGroup>
+
+## Core Exports
+
+### Mojang API Functions
+
+**Profile:**
+- `fetchMinecraftProfile()` - Get player profile by username
+  - Returns UUID, username, and account status
+
+**Session:**
+- `fetchMinecraftSession()` - Get detailed session data
+  - Returns profile with skin and cape information
+
+### Server Functions
+
+- `fetchServerStatus()` - Get Java Edition server status
+- `fetchBedrockServerStatus()` - Get Bedrock Edition server status
+- Server ping and player list information
+
+### Skin Functions
+
+- `fetchPlayerSkin()` - Get player skin URL
+- `fetchPlayerHead()` - Get player head render
+- `fetchPlayerBody()` - Get full body render
+
+### Constants
+
+- `RouteBases` - Base URLs for different Minecraft APIs
+  - Mojang API
+  - Minecraft Services API
+  - Third-party APIs
+
+## Usage Examples
+
+### Fetching Player Profiles
+
+```typescript
+import { fetchMinecraftProfile } from '@magicyan/minecraft';
+
+// Fetch player by username
+const result = await fetchMinecraftProfile('Notch');
+
+if (result.success) {
+  const profile = result.data;
+  console.log('Player UUID:', profile.id);
+  console.log('Player Name:', profile.name);
+  console.log('Legacy Account:', profile.legacy ?? false);
+  console.log('Demo Account:', profile.demo ?? false);
+} else {
+  console.error('Failed to fetch profile:', result.error);
+}
+```
+
+### Getting Player Skin
+
+```typescript
+import { fetchPlayerSkin, fetchMinecraftProfile } from '@magicyan/minecraft';
+
+// First get the player's UUID
+const profileResult = await fetchMinecraftProfile('Steve');
+
+if (profileResult.success) {
+  const { id } = profileResult.data;
+  
+  // Then fetch skin data
+  const skinResult = await fetchPlayerSkin(id);
+  
+  if (skinResult.success) {
+    const skinUrl = skinResult.data.url;
+    console.log('Skin URL:', skinUrl);
+    
+    // Use skin URL in Discord embed
+    const embed = new EmbedBuilder()
+      .setTitle(`${profileResult.data.name}'s Skin`)
+      .setImage(skinUrl);
+  }
+}
+```
+
+### Server Status Check
+
+```typescript
+import { fetchServerStatus } from '@magicyan/minecraft';
+
+// Check Java Edition server
+const result = await fetchServerStatus('mc.hypixel.net');
+
+if (result.success) {
+  const server = result.data;
+  
+  console.log('Server:', server.hostname);
+  console.log('Version:', server.version);
+  console.log('Players:', `${server.players.online}/${server.players.max}`);
+  console.log('MOTD:', server.motd);
+  
+  // Sample of online players (if available)
+  if (server.players.sample) {
+    console.log('Online players:');
+    server.players.sample.forEach(player => {
+      console.log(`- ${player.name} (${player.id})`);
+    });
+  }
+} else {
+  console.error('Server offline or unreachable');
+}
+```
+
+### Discord Bot Integration
+
+```typescript
+import { SlashCommandBuilder } from 'discord.js';
+import { fetchMinecraftProfile, fetchPlayerSkin } from '@magicyan/minecraft';
+
+const command = new SlashCommandBuilder()
+  .setName('mcprofile')
+  .setDescription('Get a Minecraft player profile')
+  .addStringOption(option =>
+    option
+      .setName('username')
+      .setDescription('Minecraft username')
+      .setRequired(true)
+  );
+
+async function execute(interaction: ChatInputCommandInteraction) {
+  await interaction.deferReply();
+  
+  const username = interaction.options.getString('username', true);
+  
+  // Fetch profile
+  const profileResult = await fetchMinecraftProfile(username);
+  
+  if (!profileResult.success) {
+    return interaction.editReply({
+      content: `Player "${username}" not found!`
+    });
+  }
+  
+  const profile = profileResult.data;
+  
+  // Get skin
+  const skinResult = await fetchPlayerSkin(profile.id);
+  
+  // Build embed
+  const embed = new EmbedBuilder()
+    .setTitle(`Minecraft Profile: ${profile.name}`)
+    .addFields(
+      { name: 'UUID', value: profile.id, inline: true },
+      { name: 'Account Type', value: profile.legacy ? 'Legacy' : 'Mojang', inline: true }
+    )
+    .setColor('#62c754');
+  
+  if (skinResult.success) {
+    embed.setThumbnail(skinResult.data.url);
+  }
+  
+  await interaction.editReply({ embeds: [embed] });
+}
+```
+
+### Server Status Command
+
+```typescript
+import { SlashCommandBuilder, EmbedBuilder } from 'discord.js';
+import { fetchServerStatus } from '@magicyan/minecraft';
+
+const command = new SlashCommandBuilder()
+  .setName('mcserver')
+  .setDescription('Check Minecraft server status')
+  .addStringOption(option =>
+    option
+      .setName('address')
+      .setDescription('Server address (IP:Port)')
+      .setRequired(true)
+  );
+
+async function execute(interaction: ChatInputCommandInteraction) {
+  await interaction.deferReply();
+  
+  const address = interaction.options.getString('address', true);
+  const result = await fetchServerStatus(address);
+  
+  if (!result.success) {
+    return interaction.editReply({
+      content: `❌ Server "${address}" is offline or unreachable.`
+    });
+  }
+  
+  const server = result.data;
+  
+  const embed = new EmbedBuilder()
+    .setTitle(`🎮 ${server.hostname}`)
+    .setDescription(server.motd.clean) // Clean MOTD without formatting codes
+    .addFields(
+      { name: 'Version', value: server.version, inline: true },
+      { name: 'Players', value: `${server.players.online}/${server.players.max}`, inline: true },
+      { name: 'Protocol', value: String(server.protocol), inline: true }
+    )
+    .setColor('#62c754')
+    .setTimestamp();
+  
+  // Add player list if available
+  if (server.players.sample && server.players.sample.length > 0) {
+    const playerList = server.players.sample
+      .slice(0, 10) // Limit to 10 players
+      .map(p => p.name)
+      .join(', ');
+    
+    embed.addFields({
+      name: 'Online Players',
+      value: playerList + (server.players.sample.length > 10 ? '...' : '')
+    });
+  }
+  
+  // Add server icon if available
+  if (server.favicon) {
+    // The favicon is a base64 data URL
+    embed.setThumbnail(server.favicon);
+  }
+  
+  await interaction.editReply({ embeds: [embed] });
+}
+```
+
+### Player Comparison
+
+```typescript
+import { fetchMinecraftProfile } from '@magicyan/minecraft';
+
+async function compareAccounts(username1: string, username2: string) {
+  const [result1, result2] = await Promise.all([
+    fetchMinecraftProfile(username1),
+    fetchMinecraftProfile(username2)
+  ]);
+  
+  if (!result1.success) {
+    return `Player "${username1}" not found`;
+  }
+  
+  if (!result2.success) {
+    return `Player "${username2}" not found`;
+  }
+  
+  const profile1 = result1.data;
+  const profile2 = result2.data;
+  
+  // Check if same account
+  if (profile1.id === profile2.id) {
+    return `"${username1}" and "${username2}" are the same account!`;
+  }
+  
+  return {
+    player1: { name: profile1.name, uuid: profile1.id },
+    player2: { name: profile2.name, uuid: profile2.id },
+    same: false
+  };
+}
+```
+
+### UUID Formatter
+
+```typescript
+function formatUUID(uuid: string): string {
+  // Mojang API returns UUIDs without dashes
+  // This function adds them back
+  if (uuid.includes('-')) return uuid;
+  
+  return [
+    uuid.slice(0, 8),
+    uuid.slice(8, 12),
+    uuid.slice(12, 16),
+    uuid.slice(16, 20),
+    uuid.slice(20)
+  ].join('-');
+}
+
+// Usage
+const result = await fetchMinecraftProfile('Player');
+if (result.success) {
+  const formatted = formatUUID(result.data.id);
+  console.log('Formatted UUID:', formatted);
+  // Output: 12345678-1234-1234-1234-123456789abc
+}
+```
+
+## Type Definitions
+
+The package includes comprehensive TypeScript types:
+
+```typescript
+import type {
+  MinecraftProfile,
+  MinecraftSession,
+  ServerStatus,
+  PlayerSkin,
+  FetchResult
+} from '@magicyan/minecraft';
+
+// Profile type
+interface MinecraftProfile {
+  id: string;        // Player UUID (without dashes)
+  name: string;      // Player username (case-sensitive)
+  legacy?: boolean;  // True if unmigrated account
+  demo?: boolean;    // True if demo account
+}
+
+// Result type
+type FetchResult<T> = 
+  | { success: true; data: T }
+  | { success: false; error: string; status?: number };
+```
+
+## Error Handling
+
+All fetch functions return a result object with success status:
+
+```typescript
+import { fetchMinecraftProfile } from '@magicyan/minecraft';
+
+const result = await fetchMinecraftProfile('InvalidUser123');
+
+if (!result.success) {
+  // Handle error
+  console.error('Error:', result.error);
+  
+  // HTTP status code if available
+  if (result.status) {
+    console.error('Status:', result.status);
+    
+    switch (result.status) {
+      case 404:
+        console.log('Player not found');
+        break;
+      case 429:
+        console.log('Rate limited - try again later');
+        break;
+      default:
+        console.log('API error');
+    }
+  }
+} else {
+  // Use data safely
+  const profile = result.data;
+  console.log(profile.name);
+}
+```
+
+## API Rate Limits
+
+<Warning>
+  The Mojang API has rate limits. If you're making many requests, implement caching and rate limiting in your bot.
+</Warning>
+
+```typescript
+import { fetchMinecraftProfile } from '@magicyan/minecraft';
+
+// Simple cache implementation
+const profileCache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+async function getCachedProfile(username: string) {
+  const cached = profileCache.get(username.toLowerCase());
+  
+  // Return cached if still valid
+  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+    return { success: true, data: cached.data, cached: true };
+  }
+  
+  // Fetch new data
+  const result = await fetchMinecraftProfile(username);
+  
+  if (result.success) {
+    // Cache the result
+    profileCache.set(username.toLowerCase(), {
+      data: result.data,
+      timestamp: Date.now()
+    });
+  }
+  
+  return result;
+}
+```
+
+## Best Practices
+
+<Tip>
+  Cache player UUIDs and profiles to reduce API calls and avoid rate limits.
+</Tip>
+
+<Note>
+  Usernames are case-sensitive in Minecraft. Always store and compare the exact username returned by the API.
+</Note>
+
+<Warning>
+  Always handle the case where a player might not exist. Don't assume all lookups will succeed.
+</Warning>
+
+## Common Use Cases
+
+- Player profile lookups in Discord bots
+- Server status monitoring and notifications
+- Minecraft account verification systems
+- Player statistics tracking
+- Skin preview and display
+- UUID to username resolution
+- Server browser and listing bots
+
+## Source Code
+
+View the source code on GitHub: [`packages/minecraft`](https://github.com/rinckodev/magicyan/tree/main/packages/minecraft)

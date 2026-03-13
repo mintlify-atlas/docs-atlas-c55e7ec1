@@ -1,0 +1,233 @@
+---
+title: 'Discord Bot Setup'
+description: 'Complete guide to setting up a Discord bot with Magicyan'
+icon: 'robot'
+---
+
+# Discord Bot Setup
+
+Learn how to set up a Discord bot from scratch using Magicyan's utilities. This guide covers client initialization, command registration, and basic event handling.
+
+## Prerequisites
+
+Before starting, ensure you have:
+
+- Node.js 18+ installed
+- A Discord bot token from the [Discord Developer Portal](https://discord.com/developers/applications)
+- Basic TypeScript knowledge
+
+## Installation
+
+<Steps>
+  <Step title="Install Dependencies">
+    Install the required Magicyan packages:
+
+    ```bash
+    npm install @magicyan/discord @magicyan/discord-events discord.js
+    ```
+  </Step>
+
+  <Step title="Create Bot Client">
+    Set up your Discord client with the appropriate intents:
+
+    ```typescript
+    import { Client, GatewayIntentBits } from 'discord.js';
+    import { initDiscordEvents } from '@magicyan/discord-events';
+
+    const client = new Client({
+      intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.GuildMembers,
+        GatewayIntentBits.MessageContent,
+      ],
+    });
+
+    // Initialize Magicyan's extended events
+    initDiscordEvents(client);
+    ```
+
+    <Tip>
+      The `initDiscordEvents` function automatically registers extended event handlers like `guildMemberConnect`, `userBanAdd`, and more.
+    </Tip>
+  </Step>
+
+  <Step title="Handle Ready Event">
+    Add a ready event handler to confirm the bot is online:
+
+    ```typescript
+    client.once('ready', (readyClient) => {
+      console.log(`✅ Bot is online as ${readyClient.user.tag}`);
+      console.log(`📊 Serving ${readyClient.guilds.cache.size} guilds`);
+    });
+    ```
+  </Step>
+
+  <Step title="Create Slash Commands">
+    Define your slash commands using Discord.js builders:
+
+    ```typescript
+    import { SlashCommandBuilder } from 'discord.js';
+
+    const commands = [
+      new SlashCommandBuilder()
+        .setName('ping')
+        .setDescription('Replies with Pong!'),
+      
+      new SlashCommandBuilder()
+        .setName('info')
+        .setDescription('Get bot information'),
+    ];
+    ```
+  </Step>
+
+  <Step title="Register Commands">
+    Register your commands when the bot starts:
+
+    ```typescript
+    import { REST, Routes } from 'discord.js';
+
+    client.once('ready', async (readyClient) => {
+      const rest = new REST().setToken(process.env.DISCORD_TOKEN!);
+
+      try {
+        console.log('🔄 Registering slash commands...');
+        
+        await rest.put(
+          Routes.applicationCommands(readyClient.user.id),
+          { body: commands.map(cmd => cmd.toJSON()) }
+        );
+
+        console.log('✅ Commands registered successfully!');
+      } catch (error) {
+        console.error('❌ Error registering commands:', error);
+      }
+    });
+    ```
+
+    <Note>
+      Use `Routes.applicationGuildCommands(clientId, guildId)` for guild-specific commands during development for instant updates.
+    </Note>
+  </Step>
+
+  <Step title="Handle Interactions">
+    Listen for command interactions and respond:
+
+    ```typescript
+    client.on('interactionCreate', async (interaction) => {
+      if (!interaction.isChatInputCommand()) return;
+
+      switch (interaction.commandName) {
+        case 'ping': {
+          await interaction.reply('🏓 Pong!');
+          break;
+        }
+        
+        case 'info': {
+          await interaction.reply({
+            content: `Bot Latency: ${client.ws.ping}ms`,
+            ephemeral: true,
+          });
+          break;
+        }
+      }
+    });
+    ```
+  </Step>
+
+  <Step title="Login the Bot">
+    Finally, log in to Discord:
+
+    ```typescript
+    client.login(process.env.DISCORD_TOKEN);
+    ```
+
+    <Warning>
+      Never hardcode your bot token! Always use environment variables or a secure configuration system.
+    </Warning>
+  </Step>
+</Steps>
+
+## Complete Example
+
+Here's a complete working example:
+
+<CodeGroup>
+```typescript index.ts
+import { Client, GatewayIntentBits, SlashCommandBuilder, REST, Routes } from 'discord.js';
+import { initDiscordEvents } from '@magicyan/discord-events';
+
+const client = new Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+  ],
+});
+
+// Initialize extended events
+initDiscordEvents(client);
+
+// Define commands
+const commands = [
+  new SlashCommandBuilder()
+    .setName('ping')
+    .setDescription('Replies with Pong!'),
+];
+
+client.once('ready', async (readyClient) => {
+  console.log(`✅ ${readyClient.user.tag} is online!`);
+
+  // Register commands
+  const rest = new REST().setToken(process.env.DISCORD_TOKEN!);
+  await rest.put(
+    Routes.applicationCommands(readyClient.user.id),
+    { body: commands.map(cmd => cmd.toJSON()) }
+  );
+});
+
+// Handle interactions
+client.on('interactionCreate', async (interaction) => {
+  if (!interaction.isChatInputCommand()) return;
+  
+  if (interaction.commandName === 'ping') {
+    await interaction.reply('🏓 Pong!');
+  }
+});
+
+client.login(process.env.DISCORD_TOKEN);
+```
+
+```env .env
+DISCORD_TOKEN=your_bot_token_here
+```
+</CodeGroup>
+
+## Using Magicyan Utilities
+
+Magicyan provides helpful utilities for working with commands:
+
+```typescript
+import { findCommand, commandMention } from '@magicyan/discord';
+
+client.on('ready', (readyClient) => {
+  // Find a command by name
+  const pingCommand = findCommand(readyClient).byName('ping');
+  
+  if (pingCommand) {
+    // Create a mention string
+    const mention = commandMention(pingCommand);
+    console.log(`Use ${mention} to test the bot`);
+  }
+});
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Event Handling" icon="bolt" href="/guides/event-handling">
+    Learn about custom event types and handlers
+  </Card>
+  <Card title="Component Builders" icon="cube" href="/guides/component-builders">
+    Build interactive Discord UI components
+  </Card>
+</CardGroup>

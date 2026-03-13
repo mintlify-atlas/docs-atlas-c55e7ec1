@@ -1,0 +1,499 @@
+---
+title: '@magicyan/discord-ui'
+description: Interactive UI components for Discord bots
+icon: window
+---
+
+The `@magicyan/discord-ui` package provides ready-to-use interactive UI components for Discord bots, including pagination menus, multi-page menus, and confirmation prompts. These components handle all the complexity of button collectors and state management.
+
+## Installation
+
+<CodeGroup>
+```bash npm
+npm install @magicyan/discord-ui
+```
+
+```bash pnpm
+pnpm add @magicyan/discord-ui
+```
+
+```bash yarn
+yarn add @magicyan/discord-ui
+```
+</CodeGroup>
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card title="Pagination" icon="arrows-left-right">
+    Navigate through multiple pages of content with next/previous buttons.
+  </Card>
+  
+  <Card title="Multi-Menu" icon="bars">
+    Create menus with multiple sections accessible via dropdown or buttons.
+  </Card>
+  
+  <Card title="Confirm Prompt" icon="check">
+    Simple yes/no confirmation dialogs with customizable buttons.
+  </Card>
+  
+  <Card title="Customizable" icon="sliders">
+    Configure default button styles, emojis, and behavior globally.
+  </Card>
+</CardGroup>
+
+## Core Exports
+
+### Functions
+
+- `discordUI()` - Configure global defaults for UI components
+- `pagination()` - Create paginated embed menus
+- `multimenu()` - Create multi-section menus
+- `confirm()` - Create confirmation prompts
+
+## Global Configuration
+
+Configure default styles for all UI components:
+
+```typescript
+import { discordUI } from '@magicyan/discord-ui';
+import { ButtonStyle } from 'discord.js';
+
+// Set defaults once at bot startup
+discordUI({
+  prompts: {
+    confirm: {
+      buttons: {
+        confirm: {
+          label: "Yes",
+          emoji: "✅",
+          style: ButtonStyle.Success
+        },
+        cancel: {
+          label: "No",
+          emoji: "❌",
+          style: ButtonStyle.Danger
+        }
+      }
+    }
+  },
+  menus: {
+    pagination: {
+      buttons: {
+        previous: {
+          label: "Previous",
+          emoji: "◀️",
+          style: ButtonStyle.Primary
+        },
+        next: {
+          label: "Next",
+          emoji: "▶️",
+          style: ButtonStyle.Primary
+        }
+      }
+    },
+    multimenu: {
+      viewType: "button", // or "select"
+      placeholder: "Select a page..."
+    }
+  }
+});
+```
+
+## Pagination Menu
+
+Create navigable paginated content:
+
+### Basic Example
+
+```typescript
+import { pagination } from '@magicyan/discord-ui';
+import { EmbedBuilder } from 'discord.js';
+
+// Create pages
+const pages = [
+  new EmbedBuilder()
+    .setTitle("Page 1")
+    .setDescription("This is the first page"),
+  new EmbedBuilder()
+    .setTitle("Page 2")
+    .setDescription("This is the second page"),
+  new EmbedBuilder()
+    .setTitle("Page 3")
+    .setDescription("This is the third page")
+];
+
+// Create pagination
+await pagination({
+  interaction,
+  pages,
+  time: 60000, // Collector timeout in ms
+  ephemeral: false
+});
+```
+
+### Advanced Pagination
+
+```typescript
+import { pagination } from '@magicyan/discord-ui';
+
+await pagination({
+  interaction,
+  pages: [
+    { embeds: [embed1], content: "Page 1" },
+    { embeds: [embed2], content: "Page 2" },
+    { embeds: [embed3], content: "Page 3" }
+  ],
+  
+  // Customize buttons for this instance
+  buttons: {
+    previous: {
+      emoji: "⬅️",
+      label: "Back"
+    },
+    next: {
+      emoji: "➡️",
+      label: "Forward"
+    }
+  },
+  
+  // Custom button filter
+  filter: (buttonInteraction) => {
+    return buttonInteraction.user.id === interaction.user.id;
+  },
+  
+  // Callbacks
+  onTimeout: async () => {
+    await interaction.editReply({
+      content: "Menu timed out",
+      components: []
+    });
+  },
+  
+  onPageChange: async (page, pageIndex) => {
+    console.log(`User navigated to page ${pageIndex + 1}`);
+  },
+  
+  time: 120000 // 2 minutes
+});
+```
+
+## Multi-Menu
+
+Create menus with multiple sections:
+
+### Using Select Menu (Dropdown)
+
+```typescript
+import { multimenu } from '@magicyan/discord-ui';
+import { EmbedBuilder } from 'discord.js';
+
+const pages = {
+  home: {
+    label: "Home",
+    emoji: "🏠",
+    embed: new EmbedBuilder()
+      .setTitle("Home")
+      .setDescription("Welcome to the menu!")
+  },
+  profile: {
+    label: "Profile",
+    emoji: "👤",
+    embed: new EmbedBuilder()
+      .setTitle("Your Profile")
+      .setDescription("View your profile information")
+  },
+  settings: {
+    label: "Settings",
+    emoji: "⚙️",
+    embed: new EmbedBuilder()
+      .setTitle("Settings")
+      .setDescription("Configure your preferences")
+  }
+};
+
+await multimenu({
+  interaction,
+  pages,
+  viewType: "select", // Use dropdown
+  placeholder: "Choose a section...",
+  time: 60000
+});
+```
+
+### Using Buttons
+
+```typescript
+await multimenu({
+  interaction,
+  pages: {
+    info: {
+      label: "Info",
+      emoji: "ℹ️",
+      content: "This is the info page",
+      embeds: [infoEmbed]
+    },
+    help: {
+      label: "Help",
+      emoji: "❓",
+      content: "This is the help page",
+      embeds: [helpEmbed]
+    },
+    about: {
+      label: "About",
+      emoji: "📋",
+      content: "This is the about page",
+      embeds: [aboutEmbed]
+    }
+  },
+  viewType: "button", // Use buttons instead of dropdown
+  time: 120000
+});
+```
+
+### Advanced Multi-Menu
+
+```typescript
+await multimenu({
+  interaction,
+  pages: pageObject,
+  
+  // Custom render function
+  render: async (pageKey, pageData) => {
+    // Custom logic when page changes
+    console.log(`Switched to page: ${pageKey}`);
+    return pageData;
+  },
+  
+  // Filter who can interact
+  filter: (interaction) => {
+    return interaction.user.id === originalUser.id;
+  },
+  
+  // Timeout handler
+  onTimeout: async () => {
+    await interaction.editReply({
+      content: "Menu expired",
+      components: []
+    });
+  },
+  
+  time: 180000 // 3 minutes
+});
+```
+
+## Confirmation Prompt
+
+Create simple yes/no confirmation dialogs:
+
+### Basic Confirm
+
+```typescript
+import { confirm } from '@magicyan/discord-ui';
+import { ActionRowBuilder, ButtonBuilder } from 'discord.js';
+
+await confirm({
+  // Render the initial message
+  render: async (components) => {
+    return await interaction.reply({
+      content: "Are you sure you want to delete this?",
+      components,
+      fetchReply: true
+    });
+  },
+  
+  // Handle button click
+  onClick: async (buttonInteraction, isCancel) => {
+    if (isCancel) {
+      await buttonInteraction.update({
+        content: "Cancelled!",
+        components: []
+      });
+    } else {
+      await buttonInteraction.update({
+        content: "Deleted successfully!",
+        components: []
+      });
+      // Perform delete action
+    }
+  },
+  
+  time: 30000 // 30 seconds
+});
+```
+
+### Custom Buttons
+
+```typescript
+import { ButtonStyle } from 'discord.js';
+
+await confirm({
+  buttons: {
+    confirm: {
+      label: "Accept",
+      emoji: "👍",
+      style: ButtonStyle.Success
+    },
+    cancel: {
+      label: "Decline",
+      emoji: "👎",
+      style: ButtonStyle.Danger
+    }
+  },
+  
+  render: async (components) => {
+    return await interaction.reply({
+      content: "Do you accept the terms?",
+      components,
+      fetchReply: true
+    });
+  },
+  
+  onClick: async (buttonInteraction, isCancel) => {
+    if (!isCancel) {
+      await buttonInteraction.update({
+        content: "Terms accepted! ✅",
+        components: []
+      });
+    } else {
+      await buttonInteraction.update({
+        content: "Terms declined.",
+        components: []
+      });
+    }
+  }
+});
+```
+
+### With Timeout Handler
+
+```typescript
+await confirm({
+  render: async (components) => {
+    return await channel.send({
+      content: "React within 10 seconds!",
+      components
+    });
+  },
+  
+  onClick: async (buttonInteraction, isCancel) => {
+    await buttonInteraction.update({
+      content: isCancel ? "Rejected" : "Accepted",
+      components: []
+    });
+  },
+  
+  onTimeout: async () => {
+    await message.edit({
+      content: "You didn't respond in time!",
+      components: []
+    });
+  },
+  
+  time: 10000 // 10 seconds
+});
+```
+
+## Real-World Examples
+
+### Shop with Pagination
+
+```typescript
+import { pagination } from '@magicyan/discord-ui';
+
+const items = await getShopItems();
+const itemsPerPage = 5;
+
+// Create pages from items
+const pages = [];
+for (let i = 0; i < items.length; i += itemsPerPage) {
+  const pageItems = items.slice(i, i + itemsPerPage);
+  const embed = new EmbedBuilder()
+    .setTitle("Shop")
+    .setDescription(pageItems.map((item, idx) => 
+      `${i + idx + 1}. ${item.name} - ${item.price} coins`
+    ).join('\n'))
+    .setFooter({ text: `Page ${Math.floor(i / itemsPerPage) + 1}/${Math.ceil(items.length / itemsPerPage)}` });
+  
+  pages.push({ embeds: [embed] });
+}
+
+await pagination({ interaction, pages, time: 120000 });
+```
+
+### Help Menu
+
+```typescript
+import { multimenu } from '@magicyan/discord-ui';
+
+const helpPages = {
+  commands: {
+    label: "Commands",
+    emoji: "⚡",
+    embed: new EmbedBuilder()
+      .setTitle("Bot Commands")
+      .addFields(
+        { name: "/help", value: "Show this menu" },
+        { name: "/profile", value: "View your profile" }
+      )
+  },
+  faq: {
+    label: "FAQ",
+    emoji: "❓",
+    embed: new EmbedBuilder()
+      .setTitle("Frequently Asked Questions")
+      .setDescription("Common questions and answers...")
+  },
+  support: {
+    label: "Support",
+    emoji: "🎫",
+    embed: new EmbedBuilder()
+      .setTitle("Get Support")
+      .setDescription("Join our support server...")
+  }
+};
+
+await multimenu({
+  interaction,
+  pages: helpPages,
+  viewType: "select",
+  placeholder: "Select a help topic..."
+});
+```
+
+## Best Practices
+
+<Tip>
+  Configure global defaults with `discordUI()` at bot startup to maintain consistent styling across all UI components.
+</Tip>
+
+<Note>
+  Always include a timeout handler to clean up expired components and prevent cluttered channels.
+</Note>
+
+<Warning>
+  Remember to use `fetchReply: true` when replying to interactions if you need the message object for the collector.
+</Warning>
+
+## TypeScript Support
+
+All functions are fully typed:
+
+```typescript
+import type { 
+  PaginationOptions, 
+  MultimenuOptions, 
+  ConfirmPromptOptions 
+} from '@magicyan/discord-ui';
+
+// TypeScript provides autocomplete and type checking
+const options: PaginationOptions = {
+  interaction,
+  pages: [...],
+  time: 60000
+};
+```
+
+## Source Code
+
+View the source code on GitHub: [`packages/discord-ui`](https://github.com/rinckodev/magicyan/tree/main/packages/discord-ui)

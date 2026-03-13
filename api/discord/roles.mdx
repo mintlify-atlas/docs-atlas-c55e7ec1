@@ -1,0 +1,92 @@
+---
+title: Roles
+description: Utility functions for finding Discord guild roles
+icon: shield
+---
+
+## findRole
+
+Find guild roles by various criteria such as name, color, or custom filters.
+
+```typescript
+function findRole(guild: Guild)
+```
+
+### Parameters
+
+<ParamField path="guild" type="Guild" required>
+  The Discord guild to search roles in
+</ParamField>
+
+### Returns
+
+<ResponseField name="return" type="object">
+  An object with methods to find roles:
+  
+  <ResponseField name="byColor" type="(color: number, and?: FindRoleFilter) => Role | undefined">
+    Find a role by its color (as a number) with an optional additional filter
+  </ResponseField>
+  
+  <ResponseField name="byHexColor" type="(hexColor: string, and?: FindRoleFilter) => Role | undefined">
+    Find a role by its hex color string (e.g., "#ff5454") with an optional additional filter
+  </ResponseField>
+  
+  <ResponseField name="byName" type="(name: string, and?: FindRoleFilter) => Role | undefined">
+    Find a role by its name with an optional additional filter
+  </ResponseField>
+  
+  <ResponseField name="byId" type="(id: string) => Role | undefined">
+    Find a role by its ID
+  </ResponseField>
+  
+  <ResponseField name="byFilter" type="(filter: FindRoleFilter) => Role | undefined">
+    Find a role using a custom filter function
+  </ResponseField>
+</ResponseField>
+
+### Example
+
+```typescript
+import { findRole } from "@magicyan/discord";
+
+// Find role by name
+const memberRole = findRole(guild).byName("Member");
+
+// Find role by hex color
+const adminRole = findRole(guild).byHexColor("#ff5454");
+
+// Find role by color number
+const blueRole = findRole(guild).byColor(0x3498db);
+
+// Find role by ID
+const leaderRole = findRole(guild).byId("537818031728885771");
+
+// Find with additional filter
+const mentionableRole = findRole(guild).byName(
+  "Updates",
+  (role) => role.mentionable
+);
+
+// Find role with custom filter
+const hoistedRole = findRole(guild).byFilter(
+  (role) => role.hoist && role.members.size > 10
+);
+
+// Find role by position
+const topRole = findRole(guild).byFilter(
+  (role) => role.position === guild.roles.highest.position
+);
+
+// Find role with permissions
+const modRole = findRole(guild).byFilter(
+  (role) =>
+    role.permissions.has("KickMembers") &&
+    role.permissions.has("BanMembers")
+);
+```
+
+<Note>
+  - The `FindRoleFilter` type is `(role: Role) => boolean`
+  - Hex colors should include the `#` prefix (e.g., `"#ff5454"`)
+  - Color numbers can be expressed in hexadecimal (e.g., `0xff5454`) or decimal format
+</Note>

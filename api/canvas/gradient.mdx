@@ -1,0 +1,190 @@
+---
+title: "Gradient"
+description: "Canvas gradient utilities for creating color gradients"
+---
+
+<Note>
+  The `@magicyan/canvas` package requires `@napi-rs/canvas` as a peer dependency. Install it with:
+  ```bash
+  npm install @napi-rs/canvas
+  ```
+</Note>
+
+## Overview
+
+The gradient utilities provide a convenient way to create and configure color gradients for canvas contexts. These work with both linear and radial gradients from `@napi-rs/canvas`.
+
+## Types
+
+### ContextGradient
+
+Interface representing a canvas gradient object.
+
+```typescript
+interface ContextGradient {
+  addColorStop(offset: number, color: string): void
+}
+```
+
+This interface is compatible with `CanvasGradient` from `@napi-rs/canvas`.
+
+---
+
+### ContextGradientStops
+
+A record type for defining gradient color stops.
+
+```typescript
+type ContextGradientStops = Record<number, string | CssColors>
+```
+
+Keys represent the offset position (0-1), and values represent the color at that position.
+
+## Functions
+
+### setGradientStops
+
+Applies multiple color stops to a gradient object.
+
+```typescript
+function setGradientStops<T extends ContextGradient>(
+  gradient: T,
+  stops: ContextGradientStops
+): ContextGradient
+```
+
+<ParamField path="gradient" type="ContextGradient" required>
+  The gradient object to configure (linear or radial gradient)
+</ParamField>
+
+<ParamField path="stops" type="ContextGradientStops" required>
+  An object mapping offset positions (0-1) to color values. Invalid offsets (non-numeric keys) are automatically skipped.
+</ParamField>
+
+**Returns:** The configured gradient object
+
+## Examples
+
+### Linear Gradient
+
+Create a linear gradient with multiple color stops:
+
+```typescript
+import { createCanvas } from '@napi-rs/canvas';
+import { setGradientStops } from '@magicyan/canvas';
+
+const canvas = createCanvas(800, 600);
+const ctx = canvas.getContext('2d');
+
+// Create a linear gradient from left to right
+const gradient = ctx.createLinearGradient(0, 0, 800, 0);
+
+// Apply color stops
+setGradientStops(gradient, {
+  0: 'red',
+  0.5: 'yellow',
+  1: 'blue'
+});
+
+ctx.fillStyle = gradient;
+ctx.fillRect(0, 0, 800, 600);
+```
+
+### Radial Gradient
+
+Create a radial gradient with color stops:
+
+```typescript
+import { createCanvas } from '@napi-rs/canvas';
+import { setGradientStops } from '@magicyan/canvas';
+
+const canvas = createCanvas(800, 600);
+const ctx = canvas.getContext('2d');
+
+// Create a radial gradient from center
+const gradient = ctx.createRadialGradient(400, 300, 0, 400, 300, 300);
+
+// Apply color stops
+setGradientStops(gradient, {
+  0: 'white',
+  0.3: 'cyan',
+  0.7: 'blue',
+  1: 'darkblue'
+});
+
+ctx.fillStyle = gradient;
+ctx.fillRect(0, 0, 800, 600);
+```
+
+### Using Named CSS Colors
+
+The gradient functions support all standard CSS color names:
+
+```typescript
+import { createCanvas } from '@napi-rs/canvas';
+import { setGradientStops } from '@magicyan/canvas';
+
+const canvas = createCanvas(800, 600);
+const ctx = canvas.getContext('2d');
+
+const gradient = ctx.createLinearGradient(0, 0, 0, 600);
+
+setGradientStops(gradient, {
+  0: 'lightblue',
+  0.25: 'skyblue',
+  0.5: 'dodgerblue',
+  0.75: 'blue',
+  1: 'darkblue'
+});
+
+ctx.fillStyle = gradient;
+ctx.fillRect(0, 0, 800, 600);
+```
+
+### Using Custom Color Formats
+
+You can use any CSS color format, including hex, rgb, rgba, and hsl:
+
+```typescript
+import { createCanvas } from '@napi-rs/canvas';
+import { setGradientStops } from '@magicyan/canvas';
+
+const canvas = createCanvas(800, 600);
+const ctx = canvas.getContext('2d');
+
+const gradient = ctx.createLinearGradient(0, 0, 800, 0);
+
+setGradientStops(gradient, {
+  0: '#FF0000',
+  0.25: 'rgb(255, 128, 0)',
+  0.5: 'rgba(255, 255, 0, 0.8)',
+  0.75: 'hsl(120, 100%, 50%)',
+  1: 'blue'
+});
+
+ctx.fillStyle = gradient;
+ctx.fillRect(0, 0, 800, 600);
+```
+
+### Method Chaining
+
+Since `setGradientStops` returns the gradient, you can use it inline:
+
+```typescript
+import { createCanvas } from '@napi-rs/canvas';
+import { setGradientStops } from '@magicyan/canvas';
+
+const canvas = createCanvas(800, 600);
+const ctx = canvas.getContext('2d');
+
+ctx.fillStyle = setGradientStops(
+  ctx.createLinearGradient(0, 0, 800, 600),
+  {
+    0: 'purple',
+    0.5: 'pink',
+    1: 'white'
+  }
+);
+
+ctx.fillRect(0, 0, 800, 600);
+```

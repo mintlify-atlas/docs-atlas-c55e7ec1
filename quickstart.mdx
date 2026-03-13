@@ -1,80 +1,245 @@
 ---
 title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+description: "Build your first Discord bot with Magicyan utilities"
+icon: "rocket"
 ---
 
-## Get started in three steps
+Get up and running with Magicyan in just a few minutes.
 
-Get your documentation site running locally and make your first customization.
+## Prerequisites
 
-### Step 1: Set up your local environment
+Before you begin, make sure you have:
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
+- Node.js v18 or higher installed
+- A Discord bot token ([Create one here](https://discord.com/developers/applications))
+- Basic knowledge of JavaScript/TypeScript and Discord.js
+
+## Installation
+
+<Steps>
+  <Step title="Create a new project">
+    Initialize a new Node.js project:
     
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
+    ```bash
+    mkdir my-discord-bot
+    cd my-discord-bot
+    npm init -y
+    ```
+  </Step>
+
+  <Step title="Install dependencies">
+    Install Magicyan packages and Discord.js:
     
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
+    <CodeGroup>
+    ```bash npm
+    npm install discord.js @magicyan/core @magicyan/discord
+    ```
+    ```bash yarn
+    yarn add discord.js @magicyan/core @magicyan/discord
+    ```
+    ```bash pnpm
+    pnpm add discord.js @magicyan/core @magicyan/discord
+    ```
+    </CodeGroup>
+  </Step>
 
-### Step 2: Deploy your changes
-
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
+  <Step title="Create your bot file">
+    Create an `index.js` file with your bot code:
     
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+    ```javascript index.js
+    import { Client, GatewayIntentBits } from 'discord.js';
+    import { createEmbed, createRow, createLinkButton } from '@magicyan/discord';
+    import { brBuilder, capitalize } from '@magicyan/core';
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+    const client = new Client({
+      intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.MessageContent
+      ]
+    });
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+    client.on('ready', () => {
+      console.log(`Bot is ready as ${client.user.tag}`);
+    });
 
-### Step 3: Go live
+    client.on('messageCreate', async (message) => {
+      if (message.author.bot) return;
+      
+      if (message.content === '!hello') {
+        const embed = createEmbed({
+          color: '#7c7c7c',
+          title: capitalize('welcome to magicyan!'),
+          description: brBuilder(
+            'This is a simple example bot using Magicyan utilities.',
+            '',
+            'Features:',
+            '• Easy embed creation',
+            '• String manipulation',
+            '• Component builders'
+          ),
+          footer: { text: 'Powered by Magicyan' },
+          timestamp: true
+        });
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+        const row = createRow(
+          createLinkButton({
+            label: 'Documentation',
+            url: 'https://github.com/rinckodev/magicyan'
+          })
+        );
 
-## Next steps
+        await message.reply({ embeds: [embed], components: [row] });
+      }
+    });
 
-Now that you have your docs running, explore these key features:
+    client.login('YOUR_BOT_TOKEN');
+    ```
+  </Step>
+
+  <Step title="Run your bot">
+    Start your bot:
+    
+    ```bash
+    node index.js
+    ```
+    
+    Your bot should now be online! Send `!hello` in a Discord channel where your bot has access.
+  </Step>
+</Steps>
+
+## What You Built
+
+This quickstart demonstrated several key Magicyan features:
 
 <CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
+  <Card title="String Utilities" icon="text">
+    Used `capitalize()` and `brBuilder()` from @magicyan/core for text formatting
+  </Card>
+  <Card title="Embed Builder" icon="window">
+    Created rich embeds with `createEmbed()` for better visual messages
+  </Card>
+  <Card title="Components" icon="grid-2">
+    Built interactive buttons with `createRow()` and `createLinkButton()`
+  </Card>
+  <Card title="Type Safety" icon="shield-check">
+    Leveraged TypeScript types for safer Discord.js development
+  </Card>
 </CardGroup>
 
-<Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
-</Note>
+## Using Core Utilities
+
+Here are some quick examples of @magicyan/core utilities:
+
+```typescript
+import { 
+  equalsIgnoreCase, 
+  limitText, 
+  sleep,
+  isDefined 
+} from '@magicyan/core';
+
+// Case-insensitive comparison
+if (equalsIgnoreCase(input, 'HELLO')) {
+  console.log('Match!');
+}
+
+// Truncate text
+const short = limitText('This is a very long text', 20, '...');
+// Result: "This is a very lo..."
+
+// Async sleep
+await sleep.seconds(5); // Wait 5 seconds
+
+// Type guard
+const values = [1, null, 2, undefined, 3];
+const defined = values.filter(isDefined); // [1, 2, 3]
+```
+
+## Using Discord Utilities
+
+Explore more Discord.js helpers:
+
+```typescript
+import { 
+  findChannel, 
+  findMember, 
+  findCommand,
+  commandMention 
+} from '@magicyan/discord';
+
+// Find channels with type safety
+const channel = findChannel(guild)
+  .byName('general', (ch) => ch.isTextBased());
+
+// Find members
+const member = findMember(guild)
+  .byUsername('rincko');
+
+// Find and mention commands
+const cmd = findCommand(client).byName('help');
+if (cmd) {
+  const mention = commandMention(cmd);
+  // Returns: </help:123456789>
+}
+```
+
+## Building Components
+
+Create interactive Discord components easily:
+
+```typescript
+import { 
+  createEmbed, 
+  createRow, 
+  createButton,
+  createModal 
+} from '@magicyan/discord';
+
+// Create a button row
+const buttons = createRow(
+  createButton({
+    customId: 'confirm',
+    label: 'Confirm',
+    style: 'Success'
+  }),
+  createButton({
+    customId: 'cancel',
+    label: 'Cancel',
+    style: 'Danger'
+  })
+);
+
+// Create a modal
+const modal = createModal({
+  customId: 'feedback',
+  title: 'Send Feedback',
+  components: [
+    createRow(
+      createInput({
+        customId: 'message',
+        label: 'Your Message',
+        style: 'Paragraph',
+        required: true
+      })
+    )
+  ]
+});
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Explore Packages" icon="boxes-stacked" href="/packages/overview">
+    Learn about all available Magicyan packages
+  </Card>
+  <Card title="Discord Bot Setup" icon="robot" href="/guides/discord-bot-setup">
+    Complete guide to setting up a production-ready bot
+  </Card>
+  <Card title="Event Handling" icon="bolt" href="/guides/event-handling">
+    Use extended Discord events for better bot functionality
+  </Card>
+  <Card title="API Reference" icon="code" href="/api/core/check">
+    Explore the complete API documentation
+  </Card>
+</CardGroup>

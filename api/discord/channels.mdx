@@ -1,0 +1,152 @@
+---
+title: Channels
+description: Utility functions for finding Discord channels and parsing channel URLs
+icon: hashtag
+---
+
+## findChannel
+
+Find guild channels by various criteria with type safety.
+
+```typescript
+function findChannel<Type extends GuildChannelType = ChannelType.GuildText>(
+  guild: Guild,
+  type?: Type
+)
+```
+
+### Parameters
+
+<ParamField path="guild" type="Guild" required>
+  The Discord guild to search channels in
+</ParamField>
+
+<ParamField path="type" type="GuildChannelType" default="ChannelType.GuildText">
+  The channel type to filter by (e.g., `ChannelType.GuildText`, `ChannelType.GuildVoice`)
+</ParamField>
+
+### Returns
+
+<ResponseField name="return" type="object">
+  An object with methods to find channels:
+  
+  <ResponseField name="byId" type="(id: string) => GetChannelType<Type> | undefined">
+    Find a channel by its ID
+  </ResponseField>
+  
+  <ResponseField name="byName" type="(name: string, and?: FindChannelFilter<Type>) => GetChannelType<Type> | undefined">
+    Find a channel by its name with an optional additional filter
+  </ResponseField>
+  
+  <ResponseField name="byFilter" type="(filter: FindChannelFilter<Type>) => GetChannelType<Type> | undefined">
+    Find a channel using a custom filter function
+  </ResponseField>
+  
+  <ResponseField name="inCategoryId" type="(id: string) => object">
+    Returns an object with `byId`, `byName`, and `byFilter` methods that search within a specific category by ID
+  </ResponseField>
+  
+  <ResponseField name="inCategoryName" type="(name: string) => object">
+    Returns an object with `byId`, `byName`, and `byFilter` methods that search within a specific category by name
+  </ResponseField>
+</ResponseField>
+
+### Example
+
+```typescript
+import { findChannel } from "@magicyan/discord";
+import { ChannelType } from "discord.js";
+
+// Find text channel by name
+const general = findChannel(guild).byName("general");
+
+// Find voice channel
+const voiceChannel = findChannel(guild, ChannelType.GuildVoice)
+  .byName("Lobby");
+
+// Find channel by ID
+const channel = findChannel(guild).byId("1234567890");
+
+// Find channel with additional filter
+const nsfw = findChannel(guild).byName(
+  "nsfw-chat",
+  (channel) => channel.nsfw
+);
+
+// Find channel in a specific category by category ID
+const supportTicket = findChannel(guild)
+  .inCategoryId("9876543210")
+  .byName("ticket-001");
+
+// Find channel in a specific category by category name
+const announcement = findChannel(guild)
+  .inCategoryName("Info")
+  .byName("announcements");
+
+// Find with custom filter in category
+const emptyVoice = findChannel(guild, ChannelType.GuildVoice)
+  .inCategoryName("Voice Channels")
+  .byFilter((channel) => channel.members.size === 0);
+```
+
+<Note>
+  The return type is automatically inferred based on the channel type parameter, providing full type safety
+</Note>
+
+---
+
+## getChannelUrlInfo
+
+Extract channel and guild IDs from a Discord channel URL.
+
+```typescript
+function getChannelUrlInfo(url: string): ChannelUrlInfo
+```
+
+### Parameters
+
+<ParamField path="url" type="string" required>
+  The Discord channel URL to parse (format: `https://discord.com/channels/GUILD_ID/CHANNEL_ID`)
+</ParamField>
+
+### Returns
+
+<ResponseField name="return" type="ChannelUrlInfo">
+  An object containing the extracted IDs:
+  
+  <ResponseField name="channelId" type="string | undefined">
+    The channel ID from the URL
+  </ResponseField>
+  
+  <ResponseField name="guildId" type="string | undefined">
+    The guild ID from the URL
+  </ResponseField>
+</ResponseField>
+
+### Example
+
+```typescript
+import { getChannelUrlInfo } from "@magicyan/discord";
+
+const url = "https://discord.com/channels/1234567890/9876543210";
+const info = getChannelUrlInfo(url);
+
+console.log(info);
+// { channelId: "9876543210", guildId: "1234567890" }
+
+// Invalid URL returns empty object
+const invalid = getChannelUrlInfo("not a valid url");
+console.log(invalid);
+// {}
+
+// Use to fetch channel from URL
+const { channelId } = getChannelUrlInfo(userProvidedUrl);
+if (channelId) {
+  const channel = await guild.channels.fetch(channelId);
+  // Use channel...
+}
+```
+
+<Note>
+  Returns an empty object `{}` if the URL doesn't match the expected Discord channel URL format
+</Note>

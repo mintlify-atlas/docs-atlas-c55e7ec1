@@ -1,0 +1,401 @@
+---
+title: '@magicyan/discord'
+description: Essential utilities for Discord.js bot development
+icon: discord
+---
+
+The `@magicyan/discord` package provides simple, powerful functions to facilitate Discord bot development. It includes utilities for channels, commands, members, roles, embeds, components, and more.
+
+## Installation
+
+<CodeGroup>
+```bash npm
+npm install @magicyan/discord discord.js
+```
+
+```bash pnpm
+pnpm add @magicyan/discord discord.js
+```
+
+```bash yarn
+yarn add @magicyan/discord discord.js
+```
+</CodeGroup>
+
+<Note>
+  This package requires `discord.js` v14.25.1 or higher as a peer dependency.
+</Note>
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card title="Channel Utilities" icon="hashtag">
+    Find channels by ID, name, type, or category with fluent API.
+  </Card>
+  
+  <Card title="Command Helpers" icon="terminal">
+    Find and mention commands with type-safe builders.
+  </Card>
+  
+  <Card title="Component Builders" icon="grid">
+    Create buttons, modals, select menus, and custom components easily.
+  </Card>
+  
+  <Card title="Embed Utilities" icon="image">
+    Build rich embeds with authors, footers, assets, and files.
+  </Card>
+</CardGroup>
+
+## Core Exports
+
+The package is organized into several categories:
+
+### Channel Functions
+
+- `findChannel()` - Fluent API for finding channels
+  - By ID, name, or custom filter
+  - Filter by category
+  - Type-safe channel types
+- `getChannelUrlInfo()` - Parse Discord channel URLs
+
+### Command Functions
+
+- `findCommand()` - Find application commands
+  - By name, ID, or filter
+  - Works with guild and global commands
+- `commandMention()` - Create command mentions
+  - Supports subcommands and groups
+
+### Member Functions
+
+- `findMember()` - Find guild members
+- `getMemberDisplayName()` - Get display name with fallbacks
+- Member management utilities
+
+### Role Functions
+
+- `findRole()` - Find roles by ID, name, or filter
+- `hasRole()` - Check if member has role
+- `getRoleColor()` - Get role color
+
+### Message Functions
+
+- `replyMessage()` - Reply with options
+- `editMessage()` - Edit existing messages
+- `deleteMessage()` - Safe message deletion
+- `fetchMessage()` - Fetch messages with error handling
+
+### Component Functions
+
+**Buttons:**
+- `createButton()` - Create button components
+- `createLinkButton()` - Create link buttons
+
+**Modals:**
+- `createModal()` - Build modal forms
+- `createTextInput()` - Text input fields
+
+**Select Menus:**
+- `createStringSelect()` - String select menus
+- `createRoleSelect()` - Role select menus
+- `createUserSelect()` - User select menus
+- `createChannelSelect()` - Channel select menus
+
+**Layout:**
+- `createRow()` - Action row builder
+- `createSection()` - Component sections
+- `createContainer()` - Component containers
+
+### Embed Functions
+
+- `EmbedPlus` - Enhanced embed builder
+- `createAuthor()` - Embed author builder
+- `createFooter()` - Embed footer builder
+- `embedAssets()` - Manage embed assets
+- `embedFiles()` - Attach files to embeds
+
+### Guard Functions
+
+Type guards for components:
+- `isButton()` - Check if component is button
+- `isModal()` - Check if component is modal
+- `isSelectMenu()` - Check select menu types
+- `isTextInput()` - Check text inputs
+
+### Constants
+
+- `DISCORD_LIMITS` - Discord API limits
+- `EMBED_COLORS` - Predefined embed colors
+- `CUSTOM_SEPARATORS` - Unicode separators
+- `UNICODE_CHARS` - Common Unicode characters
+
+## Usage Examples
+
+### Finding Channels
+
+```typescript
+import { findChannel } from '@magicyan/discord';
+import { ChannelType } from 'discord.js';
+
+// Find text channel by name
+const channel = findChannel(guild, ChannelType.GuildText)
+  .byName("general");
+
+// Find channel by ID
+const logs = findChannel(guild, ChannelType.GuildText)
+  .byId("123456789");
+
+// Find channel in specific category
+const support = findChannel(guild, ChannelType.GuildText)
+  .inCategoryName("Support")
+  .byName("ticket-1");
+
+// Find with custom filter
+const activeThread = findChannel(guild, ChannelType.PublicThread)
+  .byFilter(thread => !thread.archived);
+```
+
+### Command Mentions
+
+```typescript
+import { findCommand, commandMention } from '@magicyan/discord';
+
+// Find command by name
+const cmd = findCommand(guild).byName("profile");
+
+if (cmd) {
+  // Create mention
+  const mention = commandMention(cmd); // </profile:123>
+  
+  // With subcommand
+  const subMention = commandMention(cmd, "settings"); // </profile settings:123>
+  
+  // With group and subcommand
+  const groupMention = commandMention(cmd, "admin", "ban"); // </profile admin ban:123>
+}
+```
+
+### Building Components
+
+```typescript
+import { createButton, createRow, createModal, createTextInput } from '@magicyan/discord';
+import { ButtonStyle, TextInputStyle } from 'discord.js';
+
+// Create buttons
+const buttons = createRow(
+  createButton({
+    customId: "accept",
+    label: "Accept",
+    style: ButtonStyle.Success
+  }),
+  createButton({
+    customId: "decline",
+    label: "Decline",
+    style: ButtonStyle.Danger
+  })
+);
+
+// Create modal with inputs
+const modal = createModal({
+  customId: "feedback",
+  title: "Send Feedback",
+  components: [
+    createRow(
+      createTextInput({
+        customId: "message",
+        label: "Your Feedback",
+        style: TextInputStyle.Paragraph,
+        required: true
+      })
+    )
+  ]
+});
+
+// Use in reply
+await interaction.reply({
+  content: "Choose an option:",
+  components: [buttons]
+});
+```
+
+### Enhanced Embeds
+
+```typescript
+import { EmbedPlus, createAuthor, createFooter, EMBED_COLORS } from '@magicyan/discord';
+
+// Create rich embed
+const embed = new EmbedPlus()
+  .setTitle("User Profile")
+  .setDescription("Welcome to your profile!")
+  .setColor(EMBED_COLORS.primary)
+  .addFields(
+    { name: "Level", value: "25", inline: true },
+    { name: "XP", value: "12,450", inline: true }
+  )
+  .setThumbnail(user.displayAvatarURL())
+  .setAuthor(createAuthor({
+    name: user.username,
+    iconURL: user.displayAvatarURL()
+  }))
+  .setFooter(createFooter({
+    text: "Requested by " + interaction.user.username,
+    iconURL: interaction.user.displayAvatarURL()
+  }))
+  .setTimestamp();
+
+await interaction.reply({ embeds: [embed] });
+```
+
+### Role Management
+
+```typescript
+import { findRole, hasRole } from '@magicyan/discord';
+
+// Find role by name
+const adminRole = findRole(guild).byName("Admin");
+
+// Check if member has role
+if (hasRole(member, adminRole)) {
+  console.log("Member is an admin");
+}
+
+// Find role with filter
+const highestHoisted = findRole(guild).byFilter(
+  role => role.hoist
+);
+```
+
+### Message Utilities
+
+```typescript
+import { replyMessage, editMessage, deleteMessage } from '@magicyan/discord';
+
+// Reply to message
+await replyMessage(message, {
+  content: "Processing your request...",
+  ephemeral: true
+});
+
+// Edit message after delay
+await sleep(2000);
+await editMessage(reply, {
+  content: "Request completed!"
+});
+
+// Delete message safely
+await deleteMessage(oldMessage);
+```
+
+### Type Guards
+
+```typescript
+import { isButton, isModal, isSelectMenu } from '@magicyan/discord';
+
+client.on('interactionCreate', interaction => {
+  if (isButton(interaction)) {
+    // TypeScript knows this is a ButtonInteraction
+    await interaction.reply(`Clicked button: ${interaction.customId}`);
+  }
+  
+  if (isModal(interaction)) {
+    // TypeScript knows this is a ModalSubmitInteraction
+    const value = interaction.fields.getTextInputValue('fieldId');
+  }
+  
+  if (isSelectMenu(interaction)) {
+    // TypeScript knows this is a SelectMenuInteraction
+    const selected = interaction.values;
+  }
+});
+```
+
+### Using Constants
+
+```typescript
+import { DISCORD_LIMITS, EMBED_COLORS, UNICODE_CHARS } from '@magicyan/discord';
+
+// Check limits before sending
+if (content.length > DISCORD_LIMITS.messageContent) {
+  content = content.slice(0, DISCORD_LIMITS.messageContent - 3) + "...";
+}
+
+// Use predefined colors
+const embed = new EmbedBuilder()
+  .setColor(EMBED_COLORS.success);
+
+// Use Unicode characters
+const bullet = UNICODE_CHARS.bullet;
+const arrow = UNICODE_CHARS.arrowRight;
+```
+
+## Advanced Features
+
+### Component Containers
+
+Create complex component layouts:
+
+```typescript
+import { createContainer, createSection, createButton } from '@magicyan/discord';
+
+const container = createContainer(
+  createSection(
+    "Navigation",
+    createButton({ customId: "prev", label: "Previous" }),
+    createButton({ customId: "next", label: "Next" })
+  ),
+  createSection(
+    "Actions",
+    createButton({ customId: "save", label: "Save" }),
+    createButton({ customId: "cancel", label: "Cancel" })
+  )
+);
+```
+
+### Channel URL Parsing
+
+```typescript
+import { getChannelUrlInfo } from '@magicyan/discord';
+
+const url = "https://discord.com/channels/123456789/987654321";
+const { guildId, channelId } = getChannelUrlInfo(url);
+
+if (guildId && channelId) {
+  const guild = client.guilds.cache.get(guildId);
+  const channel = guild?.channels.cache.get(channelId);
+}
+```
+
+## Re-exports from @magicyan/core
+
+This package re-exports all utilities from `@magicyan/core`, so you don't need to install both:
+
+```typescript
+import { capitalize, ms, sleep, isDefined } from '@magicyan/discord';
+// These are from @magicyan/core but available here
+```
+
+## Best Practices
+
+<Tip>
+  Use the fluent API for finding resources. It's more readable and type-safe than manual cache filtering.
+</Tip>
+
+<Note>
+  Always check if resources exist before using them. The find functions return `undefined` if not found.
+</Note>
+
+<Warning>
+  Be mindful of Discord API limits when building messages and embeds. Use the `DISCORD_LIMITS` constants to validate.
+</Warning>
+
+## API Reference
+
+For complete API documentation, see:
+- [Channel Functions API](/api/discord/channels)
+- [Command Functions API](/api/discord/commands)
+- [Component Functions API](/api/discord/components/buttons)
+- [Embed Functions API](/api/discord/components/embeds)
+
+## Source Code
+
+View the source code on GitHub: [`packages/discord`](https://github.com/rinckodev/magicyan/tree/main/packages/discord)

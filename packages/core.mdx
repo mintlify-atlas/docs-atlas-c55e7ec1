@@ -1,0 +1,253 @@
+---
+title: '@magicyan/core'
+description: Lightweight utility functions for common tasks in TypeScript projects
+icon: brackets-curly
+---
+
+The `@magicyan/core` package provides a collection of simple, lightweight utility functions for common tasks. These utilities work in any TypeScript project and form the foundation for other Magicyan packages.
+
+## Installation
+
+<CodeGroup>
+```bash npm
+npm install @magicyan/core
+```
+
+```bash pnpm
+pnpm add @magicyan/core
+```
+
+```bash yarn
+yarn add @magicyan/core
+```
+</CodeGroup>
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card title="String Utilities" icon="text">
+    Check, format, and manipulate strings with case-insensitive comparisons and builders.
+  </Card>
+  
+  <Card title="Validation" icon="check">
+    Validate and type-check values with TypeScript-friendly guards.
+  </Card>
+  
+  <Card title="Date & Time" icon="clock">
+    Parse durations, format dates, and work with timestamps.
+  </Card>
+  
+  <Card title="Math Helpers" icon="calculator">
+    Clamp values, calculate percentages, and perform common math operations.
+  </Card>
+</CardGroup>
+
+## Core Exports
+
+The package exports utilities organized by category:
+
+### String Functions
+
+**Checking:**
+- `equalsIgnoreCase()` - Compare strings ignoring case
+- `includesIgnoreCase()` - Check if string contains substring (case-insensitive)
+
+**Formatting:**
+- `brBuilder()` - Join strings with line breaks
+- `spaceBuilder()` - Join strings with spaces
+- `capitalize()` - Capitalize first letter or all words
+- `limitText()` - Truncate text to max length
+- `replaceText()` - Replace multiple patterns
+
+**Converting:**
+- `toArray()` - Convert values to arrays
+- `toString()` - Safe string conversion
+- `toNumber()` - Safe number conversion
+
+### Validation Functions
+
+- `isDefined()` - Check if value is not null/undefined
+- `isFunction()` - Type guard for functions
+- `isObject()` - Type guard for objects
+- `isString()` - Type guard for strings
+- `isNumber()` - Type guard for numbers
+
+### Time & Date Functions
+
+- `ms()` - Parse duration strings ("1h", "30m", "2d")
+- `formatDate()` - Format dates with patterns
+- `sleep()` - Promise-based delay
+
+### Math Functions
+
+- `clamp()` - Constrain value between min and max
+- `percentage()` - Calculate percentage
+- `random()` - Generate random numbers in range
+
+### Utility Functions
+
+- `notFound()` - Convert null to undefined
+- `withTry()` - Safe try-catch wrapper
+- `debounce()` - Debounce function calls
+- `throttle()` - Throttle function calls
+
+## Usage Examples
+
+### String Manipulation
+
+```typescript
+import { equalsIgnoreCase, capitalize, brBuilder, limitText } from '@magicyan/core';
+
+// Case-insensitive comparison
+equalsIgnoreCase("Hello", "hello"); // true
+
+// Capitalize text
+capitalize("hello world"); // "Hello world"
+capitalize("hello world", true); // "Hello World"
+
+// Build multi-line strings
+const message = brBuilder(
+  "Welcome to the server!",
+  "Please read the rules.",
+  "Have fun!"
+);
+// "Welcome to the server!\nPlease read the rules.\nHave fun!"
+
+// Limit text length
+limitText("This is a very long text", 10, "..."); // "This is a ..."
+```
+
+### Validation
+
+```typescript
+import { isDefined, isFunction, isString } from '@magicyan/core';
+
+// Filter out null/undefined
+const values = [1, null, 2, undefined, 3];
+const defined = values.filter(isDefined); // [1, 2, 3]
+
+// Type guards
+const value: unknown = "hello";
+if (isString(value)) {
+  // TypeScript knows value is a string here
+  console.log(value.toUpperCase());
+}
+```
+
+### Time Parsing
+
+```typescript
+import { ms, sleep } from '@magicyan/core';
+
+// Parse duration strings
+ms("1h"); // 3600000 (milliseconds)
+ms("30m"); // 1800000
+ms("2d"); // 172800000
+ms("1w"); // 604800000
+
+// Async delay
+await sleep(1000); // Wait 1 second
+await sleep(ms("5m")); // Wait 5 minutes
+```
+
+### Math Utilities
+
+```typescript
+import { clamp, percentage, random } from '@magicyan/core';
+
+// Clamp values
+clamp(150, 0, 100); // 100
+clamp(-10, 0, 100); // 0
+clamp(50, 0, 100); // 50
+
+// Calculate percentage
+percentage(25, 100); // 25
+percentage(1, 4); // 25
+
+// Random number in range
+random(1, 10); // Random integer from 1 to 10
+random(0, 1, true); // Random float from 0 to 1
+```
+
+### Advanced String Building
+
+```typescript
+import { replaceText, spaceBuilder } from '@magicyan/core';
+
+// Replace multiple patterns
+const template = "Hello {name}, you have {count} messages!";
+const result = replaceText(template, {
+  "{name}": "Alice",
+  "{count}": "5"
+});
+// "Hello Alice, you have 5 messages!"
+
+// Build space-separated strings (filters out null/undefined)
+const name = spaceBuilder(
+  user.firstName,
+  user.middleName, // Could be null
+  user.lastName
+);
+```
+
+### Safe Error Handling
+
+```typescript
+import { withTry } from '@magicyan/core';
+
+// Wrap potentially failing operations
+const [error, result] = withTry(() => {
+  return JSON.parse(userInput);
+});
+
+if (error) {
+  console.error("Failed to parse JSON:", error);
+} else {
+  console.log("Parsed data:", result);
+}
+
+// With async functions
+const [error, data] = await withTry(async () => {
+  return await fetchData();
+});
+```
+
+## Type Exports
+
+The package also exports useful TypeScript types:
+
+```typescript
+import type { Nullable, CanBeString, FunctionLike } from '@magicyan/core';
+
+// Nullable<T> = T | null | undefined
+type MaybeString = Nullable<string>;
+
+// CanBeString = string or any object with toString()
+type StringLike = CanBeString;
+
+// FunctionLike = any function type
+type AnyFunction = FunctionLike;
+```
+
+## Best Practices
+
+<Note>
+  Use `@magicyan/core` utilities instead of reinventing common functionality. They're tested, type-safe, and handle edge cases.
+</Note>
+
+<Tip>
+  The string builder functions (`brBuilder`, `spaceBuilder`) automatically filter out `null` and `undefined` values, making them perfect for conditional string building.
+</Tip>
+
+## API Reference
+
+For complete API documentation with all functions and their signatures, see:
+- [Check Functions API](/api/core/check)
+- [Format Functions API](/api/core/format)
+- [Validation Functions API](/api/core/validation)
+- [Math Functions API](/api/core/math)
+- [Date Functions API](/api/core/date)
+
+## Source Code
+
+View the source code on GitHub: [`packages/core`](https://github.com/rinckodev/magicyan/tree/main/packages/core)

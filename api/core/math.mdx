@@ -1,0 +1,160 @@
+---
+title: "Math Functions"
+description: "Mathematical utilities for random numbers and number parsing"
+---
+
+## randomNumber
+
+Generates a random integer between the specified minimum and maximum values (inclusive).
+
+```typescript
+function randomNumber(min: number, max: number): number
+```
+
+<ParamField path="min" type="number" required>
+  The minimum value (inclusive).
+</ParamField>
+
+<ParamField path="max" type="number" required>
+  The maximum value (inclusive).
+</ParamField>
+
+**Returns:** `number` - A random integer between `min` and `max`.
+
+### Example
+
+```typescript
+import { randomNumber } from "@magicyan/core";
+
+const num = randomNumber(1, 10);
+// Returns a random integer between 1 and 10
+```
+
+---
+
+## random
+
+Object containing methods for generating random numbers.
+
+### random.int
+
+Generates a random integer between the specified minimum and maximum values (inclusive).
+
+```typescript
+random.int(min: number, max: number): number
+```
+
+<ParamField path="min" type="number" required>
+  The minimum value (inclusive).
+</ParamField>
+
+<ParamField path="max" type="number" required>
+  The maximum value (inclusive).
+</ParamField>
+
+**Returns:** `number` - A random integer between `min` and `max`.
+
+### random.float
+
+Generates a random floating-point number between the specified minimum and maximum values.
+
+```typescript
+random.float(min: number, max: number): number
+```
+
+<ParamField path="min" type="number" required>
+  The minimum value.
+</ParamField>
+
+<ParamField path="max" type="number" required>
+  The maximum value.
+</ParamField>
+
+**Returns:** `number` - A random floating-point number between `min` and `max`.
+
+### Example
+
+```typescript
+import { random } from "@magicyan/core";
+
+const intValue = random.int(1, 10);
+// Returns a random integer between 1 and 10
+
+const floatValue = random.float(0, 1);
+// Returns a random float between 0 and 1
+```
+
+---
+
+## parseIntOrDefault
+
+Parses a string to an integer, returning a default value if parsing fails.
+
+```typescript
+function parseIntOrDefault(
+  value: string,
+  defaultValue: number,
+  radix?: number
+): number
+```
+
+<ParamField path="value" type="string" required>
+  The string to parse.
+</ParamField>
+
+<ParamField path="defaultValue" type="number" required>
+  The value to return if parsing fails.
+</ParamField>
+
+<ParamField path="radix" type="number">
+  An integer between 2 and 36 that represents the base in mathematical numeral systems.
+</ParamField>
+
+**Returns:** `number` - The parsed integer, or `defaultValue` if parsing results in `NaN`.
+
+### Example
+
+```typescript
+import { parseIntOrDefault } from "@magicyan/core";
+
+parseIntOrDefault("42", 0);
+// Returns: 42
+
+parseIntOrDefault("invalid", 0);
+// Returns: 0
+
+parseIntOrDefault("FF", 0, 16);
+// Returns: 255
+```
+
+---
+
+## parseFloatOrDefault
+
+Parses a string to a floating-point number, returning a default value if parsing fails.
+
+```typescript
+function parseFloatOrDefault(value: string, defaultValue: number): number
+```
+
+<ParamField path="value" type="string" required>
+  The string to parse.
+</ParamField>
+
+<ParamField path="defaultValue" type="number" required>
+  The value to return if parsing fails.
+</ParamField>
+
+**Returns:** `number` - The parsed floating-point number, or `defaultValue` if parsing results in `NaN`.
+
+### Example
+
+```typescript
+import { parseFloatOrDefault } from "@magicyan/core";
+
+parseFloatOrDefault("3.14", 0);
+// Returns: 3.14
+
+parseFloatOrDefault("invalid", 0);
+// Returns: 0
+```

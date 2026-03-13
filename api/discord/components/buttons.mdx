@@ -1,0 +1,188 @@
+---
+title: Buttons
+description: Button component helper functions for Discord.js
+---
+
+Helper functions for creating and managing Discord button components.
+
+## createLinkButton
+
+Creates a link button that opens a URL when clicked.
+
+```typescript
+function createLinkButton(link: string, label?: string, emoji?: ComponentEmojiResolvable): ButtonBuilder
+function createLinkButton(data: CreateLinkButtonData): ButtonBuilder
+```
+
+<ParamField path="link" type="string" required>
+  The URL the button will link to
+</ParamField>
+
+<ParamField path="label" type="string">
+  The text displayed on the button. Defaults to the URL if not provided
+</ParamField>
+
+<ParamField path="emoji" type="ComponentEmojiResolvable">
+  Optional emoji to display on the button
+</ParamField>
+
+<ParamField path="data" type="CreateLinkButtonData">
+  Object containing button configuration:
+  - `url` (string, required): The link URL
+  - `label` (string): Button text
+  - `emoji` (ComponentEmojiResolvable): Button emoji
+  - `disabled` (boolean): Whether button is disabled
+</ParamField>
+
+### Returns
+
+`ButtonBuilder` - A configured link button builder
+
+### Examples
+
+<CodeGroup>
+```typescript Simple Usage
+import { createLinkButton } from "@magicyan/discord";
+
+const button = createLinkButton(
+  "https://discord.js.org",
+  "Visit Documentation"
+);
+
+await interaction.reply({
+  content: "Check out the docs!",
+  components: [new ActionRowBuilder().addComponents(button)]
+});
+```
+
+```typescript With Emoji
+import { createLinkButton } from "@magicyan/discord";
+
+const button = createLinkButton(
+  "https://github.com",
+  "GitHub",
+  "🔗"
+);
+```
+
+```typescript Object Configuration
+import { createLinkButton } from "@magicyan/discord";
+
+const button = createLinkButton({
+  url: "https://discord.com",
+  label: "Join Discord",
+  emoji: "💬",
+  disabled: false
+});
+```
+</CodeGroup>
+
+<Tip>
+  If you only provide a URL without a label, the URL will be used as the button label automatically.
+</Tip>
+
+---
+
+## wrapButtons
+
+Wraps buttons into multiple action rows with a maximum number of buttons per row.
+
+```typescript
+function wrapButtons(
+  maxItemsPerRow: number,
+  ...buttons: (ButtonBuilder | ButtonBuilder[])[]
+): ActionRowBuilder<ButtonBuilder>[]
+```
+
+<ParamField path="maxItemsPerRow" type="number" required>
+  Maximum number of buttons to include in each row (Discord limit is 5)
+</ParamField>
+
+<ParamField path="buttons" type="ButtonBuilder | ButtonBuilder[]" required>
+  Button builders to wrap into rows. Can be individual buttons or arrays of buttons
+</ParamField>
+
+### Returns
+
+`ActionRowBuilder<ButtonBuilder>[]` - Array of action rows, each containing up to `maxItemsPerRow` buttons
+
+### Examples
+
+<CodeGroup>
+```typescript Basic Wrapping
+import { wrapButtons } from "@magicyan/discord";
+import { ButtonBuilder, ButtonStyle } from "discord.js";
+
+const button1 = new ButtonBuilder({
+  customId: "accept",
+  label: "Accept",
+  style: ButtonStyle.Success
+});
+
+const button2 = new ButtonBuilder({
+  customId: "decline",
+  label: "Decline",
+  style: ButtonStyle.Danger
+});
+
+const button3 = new ButtonBuilder({
+  customId: "later",
+  label: "Decide Later",
+  style: ButtonStyle.Secondary
+});
+
+const rows = wrapButtons(2, button1, button2, button3);
+// Result: Two rows
+// Row 1: [button1, button2]
+// Row 2: [button3]
+
+await interaction.reply({
+  content: "Choose an option:",
+  components: rows
+});
+```
+
+```typescript Multiple Button Arrays
+import { wrapButtons, createLinkButton } from "@magicyan/discord";
+import { ButtonBuilder, ButtonStyle } from "discord.js";
+
+const actionButtons = [
+  new ButtonBuilder({ customId: "edit", label: "Edit", style: ButtonStyle.Primary }),
+  new ButtonBuilder({ customId: "delete", label: "Delete", style: ButtonStyle.Danger })
+];
+
+const linkButtons = [
+  createLinkButton("https://docs.discord.js.org", "Docs"),
+  createLinkButton("https://github.com", "GitHub")
+];
+
+const rows = wrapButtons(3, actionButtons, linkButtons);
+// Result: Two rows
+// Row 1: [edit, delete, docs]
+// Row 2: [github]
+```
+
+```typescript Pagination Buttons
+import { wrapButtons } from "@magicyan/discord";
+import { ButtonBuilder, ButtonStyle } from "discord.js";
+
+const buttons = [
+  new ButtonBuilder({ customId: "first", label: "⏮️", style: ButtonStyle.Secondary }),
+  new ButtonBuilder({ customId: "prev", label: "◀️", style: ButtonStyle.Primary }),
+  new ButtonBuilder({ customId: "next", label: "▶️", style: ButtonStyle.Primary }),
+  new ButtonBuilder({ customId: "last", label: "⏭️", style: ButtonStyle.Secondary }),
+  new ButtonBuilder({ customId: "stop", label: "⏹️", style: ButtonStyle.Danger })
+];
+
+const rows = wrapButtons(5, buttons);
+// All buttons fit in one row
+```
+</CodeGroup>
+
+<Warning>
+  Discord has a limit of 5 buttons per action row. Setting `maxItemsPerRow` higher than 5 will cause an error when sending the message.
+</Warning>
+
+<Tip>
+  Use `wrapButtons` when you have a dynamic number of buttons and want to automatically distribute them across multiple rows without manual row management.
+</Tip>
