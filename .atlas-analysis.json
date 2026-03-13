@@ -1,0 +1,125 @@
+{
+  "projectType": "sdk-library",
+  "projectName": "Magicyan",
+  "projectDescription": "A collection of TypeScript utility libraries for Discord.js bot development, canvas manipulation, and Minecraft API integration",
+  "theme": "aspen",
+  "primaryColor": "#7c7c7c",
+  "lightColor": "#c4c4c4",
+  "darkColor": "#070707",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": ["introduction", "installation", "quickstart"]
+          },
+          {
+            "group": "Packages",
+            "pages": [
+              "packages/overview",
+              "packages/core",
+              "packages/discord",
+              "packages/discord-events",
+              "packages/discord-ui",
+              "packages/canvas",
+              "packages/minecraft"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/discord-bot-setup",
+              "guides/event-handling",
+              "guides/component-builders",
+              "guides/canvas-operations"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Core",
+            "pages": [
+              "api/core/check",
+              "api/core/convert",
+              "api/core/format",
+              "api/core/math",
+              "api/core/date",
+              "api/core/validation",
+              "api/core/timers"
+            ]
+          },
+          {
+            "group": "Discord",
+            "pages": [
+              "api/discord/commands",
+              "api/discord/channels",
+              "api/discord/members",
+              "api/discord/roles",
+              "api/discord/emojis",
+              "api/discord/webhooks",
+              "api/discord/messages"
+            ]
+          },
+          {
+            "group": "Discord Components",
+            "pages": [
+              "api/discord/components/buttons",
+              "api/discord/components/modals",
+              "api/discord/components/select-menus",
+              "api/discord/components/embeds"
+            ]
+          },
+          {
+            "group": "Canvas",
+            "pages": [
+              "api/canvas/filters",
+              "api/canvas/gradient",
+              "api/canvas/font"
+            ]
+          },
+          {
+            "group": "Minecraft",
+            "pages": [
+              "api/minecraft/server",
+              "api/minecraft/player"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Comprehensive Discord.js utility functions for bot development",
+    "Core utilities for string manipulation, date handling, and validation",
+    "Extended Discord event system with custom event types",
+    "Discord UI component builders with type safety",
+    "Canvas manipulation utilities with filters and gradients",
+    "Minecraft API integration with typed data fetching"
+  ],
+  "publicApiSurface": [
+    "equalsIgnoreCase",
+    "includesIgnoreCase",
+    "toCase",
+    "formatDate",
+    "ms",
+    "sleep",
+    "validate",
+    "findCommand",
+    "commandMention",
+    "findChannel",
+    "findMember",
+    "findRole",
+    "createEmbed",
+    "createButton",
+    "createModal",
+    "createRow",
+    "Font",
+    "applyFilters",
+    "createGradient"
+  ]
+}
